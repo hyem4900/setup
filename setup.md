@@ -17,7 +17,6 @@
 ```
 ## Rules
 - Workflow: $grill-with-docs → $to-spec → $to-tickets → for each ticket: $implement → $code-review (in a separate session)
-- Never move to the next workflow step or ticket on your own. When a step is done, report the result and wait for the user's instruction.
 - Tickets must be demoable feature units (vertical slices).
 - Write tests only for core logic.
 - Verify library APIs with context7.
