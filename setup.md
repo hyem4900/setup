@@ -21,7 +21,7 @@
 - Write tests only for core logic.
 - Verify library APIs with context7.
 - Use playwright only for UI verification.
-- Commit after each ticket is completed.
+- After $implement, stop without committing. Commit only after the review passes and fixes are applied.
 - Respond to the user in Korean. Write code, commit messages, and comments in English.
 ```
 6. git 커밋
