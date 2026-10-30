@@ -12,7 +12,7 @@
 3. MCP 등록
 	1. context7: `codex mcp add context7 -- npx -y @upstash/context7-mcp`
 	2. playwright: `codex mcp add playwright -- npx -y @playwright/mcp@latest`
-4. `$setup-matt-pocock-skills` (트래커 : local markdown)
+4. `$setup-matt-pocock-skills` (AGENTS.md에 작성. 트래커는 local markdown 활용)
 5. AGENTS.md 규칙 추가
 ```
 ## 규칙
@@ -20,7 +20,7 @@
 - 티켓은 데모 가능한 기능 단위(vertical slice).
 - 테스트는 핵심 로직만.
 - 라이브러리 API는 context7로 확인.
-- playwright는 localhost UI 확인에만 사용.
+- playwright는 UI 확인에만 사용.
 - 티켓 완료마다 커밋.
 ```
 6. git 커밋
