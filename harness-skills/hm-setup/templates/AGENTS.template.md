@@ -11,10 +11,11 @@ Project profile: see .harness/config (MODE, SESSION_PER_TASK, PROTECTED, HAS_SER
 Read DECISIONS.md, the REQUIRE §11 decisions and docs/changes/ only when SPEC does not answer a question. `bash scripts/harness-state.sh status` shows every task's status and next action when you need it.
 
 ## Commands
-Run everything through `bash scripts/hm.sh <command>` (setup, migrate, dev, dev-bg, stop, health, status, test, e2e, load, bench, security, fmt, check, selftest; `help` lists them with this worktree's ports): it exports this worktree's ports and HM_SLOT resources, so tests reach this worktree's own database and services.
+Run everything through `bash scripts/hm.sh <command>` (setup, migrate, dev, dev-bg, stop, health, status, test, e2e, load, bench, security, fmt, check, selftest, doctor; `help` lists them with this worktree's ports): it exports this worktree's ports and HM_SLOT resources, so tests reach this worktree's own database and services.
 - While you iterate, run only the tests you are working on: `bash scripts/hm.sh test <file>` (and `e2e <file>`).
 - At each gate (the end of a task, after review fixes, after a merge), run `test` and `e2e` with no arguments: the full suites.
 - Formatting is automatic: the pre-commit hook formats the staged code files and stages them again. A file you staged only in part is left as it is, and lint then rejects it until you run `bash scripts/hm.sh fmt <file>` and stage it.
+- A harness command fails for a reason outside the code (a tool missing, a port taken, hooks not active, a config value): run `bash scripts/hm.sh doctor` first and fix what it marks FAIL.
 The stack-specific commands are in the commands section of .harness/config. When one must change (a new component, a new test directory), change its line there and note it in the task Log.
 
 ## Language

@@ -52,6 +52,7 @@ Compose it from the config and SPEC §2. Include every row whose condition holds
 | HTTP components | GET /healthz returning `"service": "<SERVICE>-<component>"`; a component that only serves pages (a UI dev server) carries `<meta name="service" content="<SERVICE>-<component>">` in its index page instead |
 | DATA_SOURCES set | Loading of all data with the rules from REQUIRE §4. Row counts exposed in a health check or printed by a load command |
 | HAS_UI=1 | The design token file built from the SPEC §9 direction, its path written into SPEC §9; an empty screen using it with the root test-id (`app-root`); smoke E2E checks it and saves a screenshot |
+| always | `bash scripts/hm.sh doctor` prints `doctor: ok` (its warnings are listed in the Task 0 report) |
 | always | Every runtime and tool in SPEC §1 is present on this machine at the chosen major version. One that is missing or too old: stop and tell me how to install it (the official installer or a version manager), and continue once I say it is done |
 | SPEC §1 or DECISIONS.md has `needs check` items | Each one verified on this machine (the tool installs, runs headless from its harness command, does what it was chosen for); the mark removed from SPEC and DECISIONS. One that fails: stop and ask, with the alternative from the Reason column |
 | HAS_SERVER=0 | The CLI/library entry point runs and prints its version or help; smoke E2E runs it as a subprocess |
@@ -79,7 +80,7 @@ hm-change carries the same rules for tasks it adds.
 There is no PROGRESS.md: status lives in the task files, and `bash scripts/harness-state.sh status` (also `bash scripts/hm.sh status`) shows the table across branches.
 
 ## B3. Harness commands (.harness/config)
-`hm.sh` runs the harness commands (setup, migrate, dev, dev-bg, stop, health, status, test, e2e, load, bench, security, fmt, check, selftest, help); every command always exists, and one turned off by the config prints `skip: <reason>` and exits 0. `harness-state.sh` reads task files and branches across worktrees for hm-auto, hm-dev and hm-review, and changes nothing on its own.
+`hm.sh` runs the harness commands (setup, migrate, dev, dev-bg, stop, health, status, test, e2e, load, bench, security, fmt, check, selftest, doctor, help); every command always exists, and one turned off by the config prints `skip: <reason>` and exits 0. `harness-state.sh` reads task files and branches across worktrees for hm-auto, hm-dev and hm-review, and changes nothing on its own.
 Do not write a Makefile or another task-runner file for the harness. If the project already has one (GREENFIELD=0), leave it as it is and call it from the commands (e.g. `TEST_CMD=make test`). If I ask for `make <name>` shortcuts, such a Makefile may only forward each target to `bash scripts/hm.sh <name>`.
 
 Fill the commands section B1 appended to .harness/config from SPEC §2: replace every placeholder, delete the example component lines that do not apply, and add one line per per-worktree resource. Same format: one `KEY=value` per line, the value is the rest of the line taken literally (no quotes needed, no inline comments). Commands run with `bash -c` after every key is exported, so a command refers to other keys as `$NAME` at run time.

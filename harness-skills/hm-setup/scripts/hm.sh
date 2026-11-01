@@ -24,6 +24,9 @@
 #            re-stages them, then runs LINT_CMD on those files only (its "$@"; without "$@" on
 #            everything), skips it when only Markdown is staged, and never runs TYPECHECK_CMD
 #   selftest prove the guardrail patterns (.harness/guardrail-samples), then run check
+#   doctor   check this machine and this worktree in one go: git, bash, curl, the config
+#            (values, placeholders, "$@", worktree folder), components, hooks, line endings.
+#            Prints ok / warn / FAIL per item; exits 1 on any FAIL
 #   help     this text, plus which commands are active and which skip
 # A command turned off by the config prints "skip: <reason>" and exits 0.
 #
@@ -432,19 +435,6 @@ dirs_present() { # dirs_present <dirs>: DIRS = the ones that exist; warns about 
   done
 }
 
-docs_only_staged() { # true when something is staged and every staged path is Markdown
-  local f
-  read_staged
-  [ -n "$STAGED" ] || return 1
-  while IFS= read -r f; do
-    [ -n "$f" ] || continue
-    case $f in *.md) ;; *) return 1 ;; esac
-  done <<EOF
-$STAGED
-EOF
-  return 0
-}
-
 cmd_fmt() { # cmd_fmt [files]
   [ -n "${FORMAT_CMD:-}" ] || skip "FORMAT_CMD empty"
   run FORMAT_CMD "$@"
@@ -569,7 +559,7 @@ cmd_check() { # cmd_check [--hook]
     if [ "$hook" = --hook ]; then
       staged_code_files
       if [ ${#CODE_FILES[@]} -eq 0 ]; then
-        echo "lint: skipped (only Markdown staged)"
+        echo "lint: skipped (no code files staged)"
       else
         case $LINT_CMD in
           *'"$@"'*) run LINT_CMD "${CODE_FILES[@]}" || { echo "FAIL: LINT_CMD"; exit 1; } ;;
@@ -695,6 +685,124 @@ cmd_selftest() {
   if [ "$ST_FAIL" = 0 ]; then echo "selftest: ok"; else echo "selftest: FAIL"; exit 1; fi
 }
 
+# ---------- doctor ----------
+# Everything that makes a harness command fail for a reason outside the code, in one report, so
+# a new machine or a teammate's checkout is diagnosed without reading the scripts.
+
+DR_FAIL=0
+dr() { printf '%-5s %s\n' "$1" "$2"; [ "$1" = FAIL ] && DR_FAIL=$((DR_FAIL + 1)); return 0; }
+
+ver_ge() { # ver_ge <have> <want>: dotted numeric versions, have >= want
+  local a=$1 b=$2 x y
+  while [ -n "$a$b" ]; do
+    x=${a%%.*}; y=${b%%.*}
+    x=${x%%[!0-9]*}; y=${y%%[!0-9]*}
+    [ "${x:-0}" -gt "${y:-0}" ] && return 0
+    [ "${x:-0}" -lt "${y:-0}" ] && return 1
+    case $a in *.*) a=${a#*.} ;; *) a= ;; esac
+    case $b in *.*) b=${b#*.} ;; *) b= ;; esac
+  done
+  return 0
+}
+
+cmd_doctor() {
+  local v k line c p h d parent abs hp f uses_http=0
+  # Tools
+  v=$(git --version 2>/dev/null); v=${v#git version }; v=${v%% *}
+  if [ -z "$v" ]; then dr FAIL "git not found"
+  elif ver_ge "$v" 2.31; then dr ok "git $v"
+  else dr FAIL "git $v is older than 2.31 (worktrees and path output need it)"; fi
+  v=${BASH_VERSION%%(*}
+  if ver_ge "$v" 3.2; then dr ok "bash $v"; else dr FAIL "bash $v is older than 3.2"; fi
+  case ${OSTYPE:-} in
+    msys*|cygwin*) dr ok "Git Bash ($OSTYPE)" ;;
+    linux*)
+      if grep -qi microsoft /proc/version 2>/dev/null; then
+        case $(pwd) in /mnt/*) dr warn "WSL bash on a Windows folder: use Git Bash (put Git's bin folder before C:\\Windows\\System32 in PATH)" ;; esac
+      fi ;;
+  esac
+  for c in $COMPONENTS; do case $(var "$c" HEALTH) in *http_has*) uses_http=1 ;; esac; done
+  if [ "$uses_http" = 1 ]; then
+    if command -v curl >/dev/null 2>&1; then dr ok "curl (for http_has)"; else dr FAIL "curl not found; the http_has health checks need it"; fi
+  fi
+  # Config values
+  case $MODE in FULL|HACKATHON) dr ok "MODE=$MODE" ;; *) dr FAIL "MODE must be FULL or HACKATHON, got '$MODE'" ;; esac
+  if [ -n "${INTEGRATION:-}" ]; then
+    if git rev-parse -q --verify "refs/heads/$INTEGRATION" >/dev/null || git rev-parse -q --verify "refs/remotes/${REMOTE:-origin}/$INTEGRATION" >/dev/null; then
+      dr ok "INTEGRATION=$INTEGRATION exists"
+    else
+      dr warn "INTEGRATION=$INTEGRATION is not a branch here yet"
+    fi
+  fi
+  if [ "${PARALLEL:-1}" -gt 1 ] 2>/dev/null && [ "${WORKTREES:-0}" != 1 ]; then dr FAIL "PARALLEL=$PARALLEL needs WORKTREES=1"; fi
+  if [ "${WORKTREES:-0}" = 1 ]; then
+    d=${WORKTREE_DIR:-../${PWD##*/}-wt}
+    case $d in
+      *' '*) dr FAIL "WORKTREE_DIR '$d' has a space" ;;
+      *)
+        parent=$(dirname "$d")
+        if abs=$(cd "$parent" 2>/dev/null && pwd -P); then
+          abs=$abs/${d##*/}
+          case "$abs/" in "$(pwd -P)/"*) dr FAIL "WORKTREE_DIR '$d' is inside the repository (test runners would scan other worktrees)" ;; *) dr ok "WORKTREE_DIR=$d" ;; esac
+        else
+          dr warn "WORKTREE_DIR '$d': its parent folder does not exist"
+        fi ;;
+    esac
+  fi
+  if [ -f .harness/local ]; then
+    case ${PORT_OFFSET:-0} in ''|*[!0-9]*) dr FAIL ".harness/local: PORT_OFFSET must be a number, got '$PORT_OFFSET'" ;; esac
+  fi
+  for k in TYPECHECK_CMD FORMAT_CMD SECRET_PATTERN; do
+    grep -q "^$k=" .harness/config || dr warn "$k missing from .harness/config (set up by an older harness; hm-setup refresh adds it)"
+  done
+  # Commands
+  while IFS= read -r line || [ -n "$line" ]; do
+    line=${line%$'\r'}
+    case $line in ''|'#'*) continue ;; esac
+    k=${line%%=*}; v=${line#*=}
+    case $k in *_CMD|*_DEV|*_PROD|*_HEALTH) ;; *) continue ;; esac
+    case $v in
+      '...'|'... '*|*' ...'|*'<'[a-z]*'>'*) dr warn "$k looks like a placeholder: $v" ;;
+    esac
+  done < .harness/config
+  [ -n "${TEST_CMD:-}" ] || dr FAIL "TEST_CMD is empty (bash scripts/hm.sh test cannot run)"
+  for k in TEST_CMD E2E_CMD LINT_CMD FORMAT_CMD; do
+    v=${!k:-}
+    [ -n "$v" ] || continue
+    case $v in *'"$@"'*) ;; *) dr warn "$k has no \"\$@\": it cannot be limited to the files given" ;; esac
+  done
+  [ -n "${LINT_CMD:-}" ] || dr warn "LINT_CMD is empty: the pre-commit hook checks the guardrails only"
+  # Components
+  if [ "$HAS_SERVER" = 1 ]; then
+    [ -n "$COMPONENTS" ] || dr FAIL "HAS_SERVER=1 but COMPONENTS is empty"
+    for c in $COMPONENTS; do
+      [ -n "$(var "$c" DEV)" ] || dr FAIL "${c}_DEV is not set"
+      h=$(var "$c" HEALTH)
+      if [ -z "$h" ]; then dr FAIL "${c}_HEALTH is not set"; continue; fi
+      [ "$HAS_LOAD" = 1 ] && [ -z "$(var "$c" PROD)" ] && dr FAIL "${c}_PROD is not set (HAS_LOAD=1)"
+      p=$(var "$c" PORT)
+      if healthy "$c"; then dr ok "$c: running (port ${p:-none})"
+      elif [ -n "$p" ] && port_busy "$p"; then dr warn "$c: port $p is taken by something that is not this project's $c (dev-bg will refuse)"
+      else dr ok "$c: port ${p:-none} free"; fi
+    done
+  fi
+  # Hooks and line endings
+  hp=$(git config core.hooksPath 2>/dev/null)
+  if [ "$hp" = .githooks ] && [ -f .githooks/pre-commit ]; then dr ok "git hooks (.githooks)"
+  else dr FAIL "git hooks are not active: run bash scripts/hm.sh setup"; fi
+  # The first line is enough (a converted file has CR on every line), and bash's own read keeps
+  # the CR: grep on Git for Windows treats CRLF as a line end and would not see it.
+  for f in scripts/hm.sh scripts/harness-state.sh .githooks/pre-commit .githooks/commit-msg .harness/config; do
+    [ -f "$f" ] || continue
+    line=; IFS= read -r line < "$f" || :
+    case $line in *$'\r') dr FAIL "$f has CRLF line endings (bash breaks on them; .gitattributes must pin LF, then re-checkout)" ;; esac
+  done
+  if [ -n "${PROTECTED:-}" ] && ! git rev-parse -q --verify harness-init >/dev/null; then
+    dr warn "no harness-init tag: the PROTECTED check is off until hm-setup tags it"
+  fi
+  if [ "$DR_FAIL" -eq 0 ]; then echo "doctor: ok"; else echo "doctor: $DR_FAIL problem(s)"; exit 1; fi
+}
+
 cmd_help() {
   sed -n '2,/^# A command turned off/p' "$0" | sed 's/^# \{0,1\}//'
   echo
@@ -748,6 +856,7 @@ case ${1:-help} in
   fmt)    shift; cmd_fmt "$@" ;;
   check)  shift; cmd_check "$@" ;;
   selftest) cmd_selftest ;;
+  doctor) cmd_doctor ;;
   help|-h|--help) cmd_help ;;
   *) echo "unknown command '$1'" >&2; cmd_help >&2; exit 1 ;;
 esac

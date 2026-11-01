@@ -93,7 +93,7 @@ else
 # Commit messages: <type>(<scope>): <summary> or <type>: <summary>. Merge and Revert pass.
 first=$(head -n 1 "$1")
 case $first in Merge*|Revert*) exit 0 ;; esac
-if printf '%s\n' "$first" | grep -Eq '^(feat|fix|docs|test|refactor|perf|style|chore|wip)(\([A-Za-z0-9._-]+\))?: .+'; then
+if printf '%s\n' "$first" | grep -Eq '^(feat|fix|docs|test|refactor|perf|style|chore|wip|revert)(\([A-Za-z0-9._-]+\))?: .+'; then
   exit 0
 fi
 echo "commit message must look like: feat(task-3): summary" >&2

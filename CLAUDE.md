@@ -15,7 +15,7 @@
 | `harness-skills/hm-setup/templates/` | hm-setup이 프로젝트로 복사하는 템플릿 (SPEC, AGENTS, REVIEW, STANDARDS, task 파일, config 명령 섹션, 가드레일 예시). 형식을 바꾸면 스킬 본문과 함께 고침 |
 | `harness-skills/hm-setup/scripts/install.sh` | 셋업 때 고정 파일(스크립트, 템플릿, hook, gitignore·gitattributes 줄, config 명령 섹션)을 한 번에 넣는 설치 스크립트. 있는 파일은 덮어쓰지 않음 |
 | `harness-skills/hm-setup/scripts/harness-state.sh` | task 파일·브랜치·리뷰 파일로 "다음에 뭘 할지"를 판단하는 스크립트 (자동 실행, worktree 경로·포트 배정) |
-| `harness-skills/hm-setup/scripts/test-harness-state.sh` | `harness-state.sh`를 임시 저장소에서 검증하는 테스트. 이 저장소 전용이며 프로젝트로 복사되지 않음. 스크립트나 "스크립트가 의존하는 규칙"을 고치면 실행 (Windows에서 몇 분 걸림) |
+| `harness-skills/hm-setup/scripts/test-harness-state.sh`, `test-hm.sh` | `harness-state.sh` / `hm.sh`·`install.sh`를 임시 저장소에서 검증하는 테스트. 이 저장소 전용이며 프로젝트로 복사되지 않음. 고친 스크립트의 테스트를 돌림 (Windows에서 각각 몇 분 걸림, GitHub Actions가 push마다 ubuntu·macOS에서도 돌림) |
 | `harness-skills/hm-setup/scripts/hm.sh` | 프로젝트의 하네스 명령 (setup, test, e2e, security, check, selftest, dev-bg 등). 명령 내용은 `.harness/config`에서 읽음. 컴포넌트 기동·health check·종료 포함 |
 | `setup.md` | 하네스와 별개인 예전 개인 설정 메모 |
 
@@ -48,7 +48,7 @@
 - `harness-state.sh`, `hm.sh`, hook 예시는 ASCII만 씁니다 (Windows에서 한글이 깨짐).
 - 하네스는 make 같은 별도 빌드 도구에 의존하지 않습니다. 필요한 건 git과 bash뿐입니다.
 - 스크립트는 macOS 기본 bash 3.2에서도 돌아야 합니다 (연관 배열 등 bash 4 기능 금지).
-- 스크립트가 읽는 형식(`FLOW.md` "스크립트가 의존하는 규칙")을 바꾸면 `harness-state.sh`와 `hm.sh`도 함께 고칩니다. `harness-state.sh`를 고쳤으면 `bash harness-skills/hm-setup/scripts/test-harness-state.sh`가 `failed 0`으로 끝나야 합니다.
+- 스크립트가 읽는 형식(`FLOW.md` "스크립트가 의존하는 규칙")을 바꾸면 `harness-state.sh`와 `hm.sh`도 함께 고칩니다. `harness-state.sh`를 고쳤으면 `bash harness-skills/hm-setup/scripts/test-harness-state.sh`, `hm.sh`나 `install.sh`를 고쳤으면 `bash harness-skills/hm-setup/scripts/test-hm.sh`가 `failed 0`으로 끝나야 합니다. 테스트가 도는 동안에는 그 스크립트를 고치지 않습니다 (bash가 실행 중인 파일을 읽다가 깨짐).
 
 ## 고친 뒤 반드시: Codex로 복사
 

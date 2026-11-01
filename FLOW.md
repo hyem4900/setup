@@ -98,7 +98,7 @@ Root (메인 작업 트리, INTEGRATION 브랜치)
 ├─ CLAUDE.md 등       (AGENT_FILES. "AGENTS.md를 먼저 읽어라" + `@AGENTS.md` 두 줄. 기존 파일이면 덧붙임)
 ├─ .githooks/         (pre-commit: hm.sh check --hook (스테이징된 코드 자동 포맷 후 검사, 그 파일만 lint, Markdown만 스테이징이면 lint 생략), commit-msg: 형식 검사)
 ├─ scripts/
-│  ├─ hm.sh            (하네스 명령: setup, migrate, dev, dev-bg, stop, health, status, test, e2e, load, bench, security, fmt, check, selftest, help)
+│  ├─ hm.sh            (하네스 명령: setup, migrate, dev, dev-bg, stop, health, status, test, e2e, load, bench, security, fmt, check, selftest, doctor, help)
 │  └─ harness-state.sh (상태 판단: 다음 단계, worktree 경로·포트, 결과 확인)
 ├─ docs/
 │  ├─ BRIEF.md        (채팅으로 붙여넣은 요구사항이 있을 때 1단계가 저장)
@@ -214,6 +214,7 @@ web_HEALTH=http_has http://localhost:$web_PORT/ "$SERVICE-web"
 | fmt [파일] | FORMAT_CMD로 파일을 그 자리에서 포맷 (인자 없으면 프로젝트 전체) | 동일 |
 | check | 가드레일 + LINT_CMD(전체) + TYPECHECK_CMD (`--hook`: 먼저 스테이징된 코드를 자동 포맷하고 다시 스테이징, 그 파일만 LINT_CMD, TYPECHECK_CMD 생략, Markdown만 스테이징이면 lint 생략) | 동일 |
 | selftest | 가드레일 패턴을 `.harness/guardrail-samples`의 예시와 내장 예시로 검증하고, 잘못된 task 파일·PROTECTED 경로를 확인한 뒤 check 실행. 셋업 때 한 번 | 동일 |
+| doctor | 이 PC와 이 worktree를 한 번에 점검: git·bash 버전, Git Bash인지, curl, config 값(MODE, PARALLEL·WORKTREES, WORKTREE_DIR 위치, 남은 `...` 자리표시, `"$@"` 누락, 셋업 이후 생긴 키), 컴포넌트(명령·health check 유무, 포트를 남이 쓰는지), hook 활성화, CRLF. 항목마다 ok / warn / FAIL, FAIL이 있으면 1로 종료. 새 PC나 동료 PC에서 "왜 안 되지"를 찾을 때 먼저 돌림 | 동일 |
 | help | 명령 목록, 이 worktree의 포트와 HM_SLOT, skip되는 명령 | 동일 |
 
 다른 프로세스가 포트를 차지하고 있으면 기동을 거부하고, 뒤 컴포넌트가 실패하면 앞에서 띄운 것을 정리함.
@@ -247,7 +248,7 @@ web_HEALTH=http_has http://localhost:$web_PORT/ "$SERVICE-web"
 | task 파일의 Status, Type, Review 값이 정해진 목록 안에 있음 | 항상 |
 | LINT_CMD 통과 (포맷 검사 포함. pre-commit은 그 전에 스테이징된 코드를 FORMAT_CMD로 자동 포맷하고, 그 파일만 검사함) | LINT_CMD가 있을 때. pre-commit은 Markdown만 스테이징된 커밋이면 생략 |
 | TYPECHECK_CMD 통과 | TYPECHECK_CMD가 있을 때. 직접 부르는 `check`만 (pre-commit에서는 돌지 않음) |
-| 커밋 메시지 `<type>(scope): ...` (scope에 대문자·점 허용, Merge/Revert 통과) | commit-msg hook |
+| 커밋 메시지 `<type>(scope): ...` (type은 feat, fix, docs, test, refactor, perf, style, chore, wip, revert. scope에 대문자·점 허용, Merge/Revert 통과) | commit-msg hook |
 
 **패턴 검증 (`hm.sh selftest`).** 셋업 때 가드레일이 실제로 걸리는지 한 번에 확인함. 위반 파일을 만들거나 임시 저장소를 쓰지 않음.
 - 에이전트가 `.harness/guardrail-samples`에 예시 줄을 적음: 테스트 도구의 스킵 방식마다 `skip:`, 금지·허용 선택자마다 `selector-deny:`·`selector-allow:`, 추가한 키 형식마다 가짜 값 `secret:`.
