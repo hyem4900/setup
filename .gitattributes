@@ -1,0 +1,7 @@
+* text=auto
+*.sh text eol=lf
+*.template text eol=lf
+harness-skills/**/*.md text eol=lf
+FLOW.md text eol=lf
+CLAUDE.md text eol=lf
+CHANGELOG.md text eol=lf
