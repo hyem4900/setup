@@ -15,13 +15,18 @@
 #   notes                Codebase notes for dev sub-agents: fresh | stale | missing | skip
 #   run-begin <target> [--no-demo]  Validate, take the lock, reset per-run counters
 #   next [--all]         Hand out one step (key=value lines), or all that can start ("--" between)
-#   check <step> [--next] Verify a step that next handed out; --next: then "--" and next --all
+#   check <step> [--next] Verify a step that next handed out; --next: then "--" and next --all.
+#                        Appends the step's timing and result to artifacts/runs/<run>/summary.tsv
 #   hold <id> [reason]   Hand out nothing for Task <id> until release (e.g. its demo waits)
 #   release <id>         End a hold
 #   run-end              Release the lock and forget pending steps and holds
 #
 # Targets: <id> | <id>,<id>,... | N-M (numeric ids) | all | review-all
-# Env:     MAX_CONTINUE (default 2), MAX_REREVIEW (default 1)
+# Env:     MAX_CONTINUE (default 2), MAX_REREVIEW (default 1),
+#          REVIEW_ALL_TASKS (default 3), REVIEW_ALL_LINES (default 600): in MODE=FULL, status and
+#          a batch merge's check add "(suggest: Review all.)" to the review backlog line once
+#          that many tasks were merged without their own review, or that many lines changed
+#          since the last review all. A suggestion only; nothing runs by itself.
 # Exit:    0 ok, 1 usage or precondition error, 3 needs a human
 #
 # Conventions it relies on (FLOW.md "Rules the script depends on"):
@@ -58,7 +63,22 @@ FETCH_WARN=
 
 say() { printf '%s=%s\n' "$1" "$2"; }
 fail() { say "$OUT_KEY" error; say reason "$*"; exit 1; }
-needs_human() { say "$OUT_KEY" "$1"; say reason "$2"; exit 3; }
+needs_human() { log_step "$1"; say "$OUT_KEY" "$1"; say reason "$2"; exit 3; }
+
+# Timing of each checked step goes to artifacts/runs/<run>/summary.tsv (step, action, task,
+# started, seconds, result), so a run can be tuned (PARALLEL, where the time goes). cmd_check
+# sets STEP_NO and the others from the step file; log_step writes once and clears STEP_NO.
+STEP_NO= STEP_ACTION= STEP_TASK= STEP_STARTED= STEP_STARTED_AT=
+log_step() { # log_step <result>
+  local f now
+  [ -n "$STEP_NO" ] && [ -n "$STEP_STARTED" ] || { STEP_NO=; return 0; }
+  f=artifacts/runs/$RUN_ID/summary.tsv
+  mkdir -p "artifacts/runs/$RUN_ID"
+  [ -f "$f" ] || printf 'step\taction\ttask\tstarted\tseconds\tresult\n' > "$f"
+  now=$(date +%s)
+  printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$STEP_NO" "$STEP_ACTION" "$STEP_TASK" "$STEP_STARTED_AT" "$((now - STEP_STARTED))" "$1" >> "$f"
+  STEP_NO=
+}
 
 usage() { sed -n '2,25p' "$0" | sed 's/^# \{0,1\}//'; }
 
@@ -495,6 +515,28 @@ review_all_action() {
   A_ACTION=done
 }
 
+# review_backlog: REPLY = "" when nothing waits for a review all, else "N task(s) merged without
+# review, M lines changed" (code only, since the last applied review all or harness-init), with
+# " (suggest: Review all.)" when MODE=FULL and a threshold is reached. Costs one or two git calls,
+# and only when the count is above zero.
+review_backlog() {
+  local n applied base lines=0
+  REPLY=
+  count_int_status "In Review"; n=$REPLY
+  [ "$n" -gt 0 ] || return 0
+  latest_applied "$INT_REF" review-all; applied=$REPLY
+  base=
+  [ -n "$applied" ] && base=$(git show "$INT_REF:$APPLIED_DIR/$applied" 2>/dev/null | commit_of)
+  if [ -z "$base" ] && ref_ok harness-init; then base=harness-init; fi
+  if [ -n "$base" ]; then
+    lines=$(git diff --numstat "$base" "$INT_REF" -- . ':(exclude)docs' 2>/dev/null | awk '{ if ($1 != "-") a += $1 + $2 } END { print a + 0 }')
+  fi
+  REPLY="$n task(s) merged without review, $lines lines changed"
+  if [ "$MODE" = FULL ] && { [ "$n" -ge "${REVIEW_ALL_TASKS:-3}" ] || [ "$lines" -ge "${REVIEW_ALL_LINES:-600}" ]; }; then
+    REPLY="$REPLY (suggest: Review all.)"
+  fi
+}
+
 skill_for() { # REPLY
   case $1 in
     start|continue) REPLY=hm-dev ;;
@@ -651,6 +693,7 @@ cmd_status() {
     review_all_action 0
     printf '%-10s %-12s %-8s %-6s %-7s %s\n' all - - - - "$A_ACTION"
   fi
+  review_backlog; [ -n "$REPLY" ] && echo "review backlog: $REPLY"
   echo "config: MODE=$MODE MERGE=$MERGE INTEGRATION=$INTEGRATION PARALLEL=$PARALLEL WORKTREES=$WORKTREES"
   if [ -d "$LOCK" ]; then info=; IFS= read -r info < "$LOCK/info" 2>/dev/null || :; echo "run: active ($info)"; fi
   for f in $PENDING; do
@@ -797,6 +840,8 @@ hand_out() {
     printf 'FILE=%q\n' "$file"
     printf 'DIR=%q\n' "$dir"
     printf 'OFFSET=%s\n' "$offset"
+    printf 'STARTED=%s\n' "$(date +%s)"
+    printf 'STARTED_AT=%s\n' "$(date '+%Y-%m-%d %H:%M:%S')"
     printf 'HEAD0=%q\n' "$head0"
     if [ "$task" = all ]; then
       printf 'EXP_REF=%q\n' "${EXP_REF:-$INT_REF}"
@@ -872,7 +917,7 @@ next_one() {
   return 1
 }
 
-step_ok() { rm -f "$STEP_FILE"; say result ok; }
+step_ok() { rm -f "$STEP_FILE"; log_step ok; say result ok; }
 
 cmd_check() {
   local st subj new f v blocker exp got c name fb ist n
@@ -880,8 +925,10 @@ cmd_check() {
   load_run
   STEP_FILE=$STEPS_DIR/${1:-none}.env
   [ -n "${1:-}" ] && [ -f "$STEP_FILE" ] || fail "no pending step '${1:-}' (call next first; see status)"
+  STARTED= STARTED_AT=
   # shellcheck disable=SC1090
   . "$STEP_FILE"
+  STEP_NO=$1 STEP_ACTION=$ACTION STEP_TASK=$TASK STEP_STARTED=$STARTED STEP_STARTED_AT=$STARTED_AT
   case $ACTION in
     start|continue)
       task_ref "$TASK"
@@ -907,7 +954,7 @@ cmd_check() {
         "In Progress")
           subj=$(git log -1 --format=%s "$TREF" | tr -d '\r')
           if [ "$(sha_of "$TREF")" != "$HEAD0" ] && [ "${subj#wip(task-$TASK)}" != "$subj" ]; then
-            rm -f "$STEP_FILE"; say result continue; say reason "wip commit: context ran out, continue in a fresh sub-agent"; return 0
+            rm -f "$STEP_FILE"; log_step continue; say result continue; say reason "wip commit: context ran out, continue in a fresh sub-agent"; return 0
           fi
           needs_human needs_user "Task $TASK is In Progress without a new wip commit: the agent stopped to ask a question" ;;
         *) needs_human needs_user "Task $TASK has unexpected status '$st' after the dev step" ;;
@@ -943,7 +990,7 @@ EOF
       int_status "$TASK"; ist=$REPLY
       case $ist in
         Done) step_ok; say status "done, merged"; return 0 ;;
-        "In Review") [ "$ACTION" = merge ] && { step_ok; say status "merged, waits for review all"; return 0; } ;;
+        "In Review") [ "$ACTION" = merge ] && { step_ok; say status "merged, waits for review all"; review_backlog; [ -n "$REPLY" ] && say backlog "$REPLY"; return 0; } ;;
       esac
       field "$TREF" "$TASK" Status; st=$REPLY
       if [ "$st" = Done ] || [ "$ACTION" = merge ]; then

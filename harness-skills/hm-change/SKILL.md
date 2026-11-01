@@ -1,6 +1,6 @@
 ---
 name: hm-change
-description: Takes in a new or changed requirement after harness setup, or without the harness (then only a change record and task files) (a feature, a change, a bug, demo feedback, a removal, technical work, a question to investigate, a security review's findings, a task split) and turns it into a change record, updated REQUIRE, SPEC and DECISIONS, and new or dropped task files, without restarting the flow. Use when the user says "요구사항 추가해: ...", "요구사항 변경해: ...", "버그 등록해: ...", "수정 요청: ...", "보안 리뷰 반영해: <file>", "Task N 나눠줘", or asks to add, change, split or drop requirements or tasks mid-project.
+description: Turns a new or changed requirement after setup (without the harness: a change record and task files only) into a change record, updated REQUIRE, SPEC and DECISIONS, and new or dropped tasks: a feature, a change, a bug, demo feedback, a removal, technical work, a spike, docs, security findings or a task split. Use when the user says "요구사항 추가해: ...", "요구사항 변경해: ...", "버그 등록해: ...", "수정 요청: ...", "보안 리뷰 반영해: <file>", "Task N 나눠줘".
 ---
 
 # Harness: Change request
@@ -12,7 +12,7 @@ Files I name: a file named in my message is the first source for the role I give
 
 ## Inputs
 Find each input in this order, and name in the CR file the file that served (e.g. `Requirements: docs/prd.md (stand-in for REQUIRE.md)`): a file I name → the harness file → a file in the repository that plays the same role (ask once if several fit) → the fallback.
-Without the harness (no .harness/config), create none of .harness/config, AGENTS.md, scripts/ or git hooks: they belong to hm-setup, and other skills would take them for a finished setup. For this session use: CHAT_LANG the language I write in; DOC_LANG the language of the repository's docs, else English; INTEGRATION the repository's default branch (`origin/HEAD`, else main or master; ask if none); MERGE=local. Ask questions as ❓ **topic**: question, then ➡️ your recommendation, last in the message.
+Without the harness (no .harness/config): follow references/no-harness.md in this skill's folder (what not to create, the defaults for languages, branch, commands and scratch files, and the question format). With the harness, AGENTS.md covers this and you read it first.
 
 | Input | Harness file | Stand-ins to look for | Fallback |
 |---|---|---|---|
@@ -83,20 +83,7 @@ Kinds:
 ## 3. Clarify, then confirm
 Clarify first when the request is not yet clear enough to write ACs or "Done when" bullets with concrete values: it can be read more than one way, it gives no values or examples, it contradicts REQUIRE.md, a DR-xx, the Glossary or shipped behavior, or it is large (more than one new R-xx, or a contract change). Otherwise skip to the confirmation.
 
-Question format (every question in this skill, including D-xx in the confirmation):
-
-~~~
-❓ **Q-2 — Missing transfer time**: May a **common default transfer time** apply between same-name stations, and if so, how many seconds? `Yesol` and `Geumbit` share a name, but the data gives no walking time between them.
-
-➡️ Allow transfers between same-name stations and apply a common default time confirmed by the owner: REQUIRE `DR-04` already treats them as one station.
-~~~
-
-- First line: ❓, the ID (Q-<k> or D-xx) and a short topic in bold, a colon, then the question and its context in one to three sentences in CHAT_LANG. Bold the phrase the decision hinges on; names, values, paths and IDs in code spans.
-- Question first: the sentence ending in `?` comes right after the colon; the reason, evidence, counts and examples follow it, never before it. Bad: "5 pairs of segments have two records ... Should we use only the newest?" Good: "Should we use only the newest record? For example, `S201→S202` has 266 s from 2025 and 176 s from 2026."
-- Options, if any, one line each between the question and the recommendation: `A) ...`, `B) ...`. Each option says in plain words what will happen and what I gain or give up; keys or technical names only in parentheses after that.
-- Blank line, then ➡️ and your recommended answer with one line on why. Every question has one; if you cannot recommend, say what you would need to know and recommend the safest choice meanwhile.
-- Only Markdown bold and code spans for emphasis; no HTML, no color codes.
-- Questions always come last in the message. Findings, explanations and tables go first; nothing follows the last ➡️ line.
+Question format (every question in this skill, including D-xx in the confirmation): references/question-format.md in this skill's folder, or the same format in AGENTS.md "Ask the user when".
 
 Clarifying, in rounds:
 - A round is the **frontier**: every open question whose answer does not wait on another open question, in one message, at most 5, highest impact first, each numbered in the format above. Word each one so that "yes" accepts the recommendation; I may answer by number ("1 yes, 2 B").

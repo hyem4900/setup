@@ -1,0 +1,27 @@
+name: harness scripts
+
+on:
+  push:
+    paths:
+      - "harness-skills/hm-setup/scripts/**"
+      - ".github/workflows/harness-scripts.yml"
+  pull_request:
+    paths:
+      - "harness-skills/hm-setup/scripts/**"
+      - ".github/workflows/harness-scripts.yml"
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        # macos-latest ships bash 3.2 as /bin/bash: the oldest version the scripts must support.
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: bash version
+        run: /bin/bash --version | head -n 1
+      - name: syntax
+        run: for f in harness-skills/hm-setup/scripts/*.sh; do /bin/bash -n "$f"; done
+      - name: harness-state.sh
+        run: /bin/bash harness-skills/hm-setup/scripts/test-harness-state.sh

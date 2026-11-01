@@ -1,6 +1,6 @@
 ---
 name: hm-load-test
-description: Step 6-1 of the harness flow. Use when the user says "부하 테스트 해", "성능 테스트 해", or asks for a load test or benchmark against the targets in docs/SPEC.md §10 (without the harness: targets from a document or asked of the user). Measures, finds bottlenecks, fixes, re-measures, and writes docs/LOAD_TEST.md. Load test with the load tool chosen in SPEC when HAS_LOAD=1; single-caller benchmarks from SPEC §10b otherwise (CLI, library, batch). Recommends a tool first if SPEC names none.
+description: Step 6-1 of the harness flow. Use for "부하 테스트 해", "성능 테스트 해", or a load test or benchmark against the SPEC §10 targets (without the harness: from a document, or asked). Measures, finds bottlenecks, fixes, re-measures and writes docs/LOAD_TEST.md. Load test when HAS_LOAD=1; single-caller benchmarks (§10b) otherwise. Recommends a tool if SPEC names none.
 ---
 
 # Harness Step 6-1: Performance test
@@ -11,7 +11,7 @@ Files I name: a file named in my message is the first source for the role I give
 
 ## Inputs
 Find each input in this order, and name in LOAD_TEST.md the file that served (e.g. `Targets: docs/prd.md §5 (stand-in for SPEC §10)`): a file I name → the harness file → a file in the repository that plays the same role (ask once if several fit) → the fallback.
-Without the harness (no .harness/config), create none of .harness/config, AGENTS.md, scripts/ or git hooks, and never edit REQUIRE, SPEC or a config: they belong to hm-setup, and other skills would take them for a finished setup. For this session use: CHAT_LANG the language I write in; DOC_LANG the language of the repository's docs, else English; INTEGRATION the repository's default branch (`origin/HEAD`, else main or master; ask if none); WORKTREES=0, MERGE=local; the repository's own commands (package scripts, task runner, Makefile; ask once if unclear) wherever this skill says `bash scripts/hm.sh <name>`; result files in the OS temp directory unless git ignores artifacts/. Ask questions as ❓ **topic**: question, then ➡️ your recommendation, last in the message.
+Without the harness (no .harness/config): follow references/no-harness.md in this skill's folder (what not to create, the defaults for languages, branch, commands and scratch files, and the question format). With the harness, AGENTS.md covers this and you read it first.
 
 | Input | Harness file | Stand-ins to look for | Fallback |
 |---|---|---|---|

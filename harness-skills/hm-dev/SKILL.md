@@ -1,6 +1,6 @@
 ---
 name: hm-dev
-description: Steps 4 and 5-2 of the harness flow, the development session. Use for "Start Task <id>." / "Continue Task <id>." (one task from docs/tasks/ on its own branch and worktree, test-first, ending in a demo report), or "개발해: ..." / "Implement: ..." for a request without the harness; a review to apply in any shape, also without the harness ("리뷰 반영해: ...", "Apply these review comments: <file>", pull request comments); "Merge Task <id>." / "Merge branch <branch>." (the only step that integrates work); and hard bugs or slowness, inside a task or on their own ("디버깅해: ...", "원인 찾아줘: ...", "왜 느린지 찾아줘").
+description: Steps 4 and 5-2 of the harness flow: the development session. Use for "Start Task <id>." / "Continue Task <id>." (one task on its own branch, test-first, ending in a demo report), or "개발해: ..." without the harness; applying a review of any shape ("리뷰 반영해: ...", "Apply these review comments: <file>"); "Merge Task <id>." / "Merge branch <branch>." (the only step that integrates) and "Task <id> 되돌려" / "Revert Task <id>."; and debugging ("디버깅해: ...", "원인 찾아줘: ...", "왜 느린지 찾아줘").
 ---
 
 # Harness Steps 4 and 5-2: Develop, apply review, integrate
@@ -12,6 +12,7 @@ Follow AGENTS.md (it sets the languages: CHAT_LANG for talking to me, DOC_LANG f
 | "Start Task <id>." / "Continue Task <id>." / "개발해: <request or file>" ("Implement: ...") | Develop |
 | A review in any shape: a file path, pasted text, pull request comments ("리뷰 반영해: ...", "Apply these review comments: ...") | Apply review: read references/review-and-merge.md in this skill's folder and follow it |
 | "Merge Task <id>." / "Merge branch <branch>." | Integrate: the same file, its "Integrate" part |
+| "Task <id> 되돌려" / "Revert Task <id>." | the same file, "Undoing a merged task" |
 | "디버깅해: ...", "원인 찾아줘: ...", "왜 느린지 찾아줘", or a Develop rule sends you there | Read references/debug.md in this skill's folder and follow it |
 
 Other skills: use another skill only when my message names it or a step of this skill names it. An installed skill whose description seems to fit the work (a design system, charts, documents) stays unused, unless SPEC or DECISIONS records that I chose it.
@@ -19,7 +20,7 @@ Files I name: a file named in my message is the first source for the role I give
 
 ## Inputs
 Find each input in this order, and name in your report the file that served (e.g. `Review source: PR comments (stand-in for a review file)`): a file I name → the harness file → a file in the repository that plays the same role (ask once if several fit) → the fallback.
-Without the harness (no .harness/config), every part still works; Develop starts from a request or a task file ("Preconditions (without the harness)"). Create none of .harness/config, AGENTS.md, scripts/ or git hooks: they belong to hm-setup, and other skills would take them for a finished setup. For this session use: CHAT_LANG the language I write in; DOC_LANG the language of the repository's docs, else English; INTEGRATION the repository's default branch (`origin/HEAD`, else main or master; ask if none); WORKTREES=0, MERGE=local; the repository's own commands (package scripts, task runner, Makefile; ask once if unclear) wherever this skill says `bash scripts/hm.sh <name>`. Ask questions as ❓ **topic**: question, then ➡️ your recommendation, last in the message.
+Without the harness (no .harness/config), every part still works; Develop starts from a request or a task file ("Preconditions (without the harness)"). Follow references/no-harness.md in this skill's folder for what not to create and the session defaults (languages, INTEGRATION, WORKTREES=0, MERGE=local, the repository's own commands, scratch files, the question format).
 
 | Input | Harness file | Stand-ins to look for | Fallback |
 |---|---|---|---|

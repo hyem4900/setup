@@ -1,6 +1,6 @@
 ---
 name: hm-setup
-description: Steps 2–3 of the harness flow, plan and setup in one go. Use when the user says "설계 시작해" or "하네스 만들어", or asks to plan the architecture and technical spec from docs/REQUIRE.md or to create the harness (AGENTS.md, task files, REVIEW.md, harness commands, guardrails). Asks the D-xx decisions, writes docs/DECISIONS.md and docs/SPEC.md (components and the contracts between them), then, without stopping, builds the harness from the templates and scripts in this skill's folder, shaped by .harness/config, and commits it. Starts without hm-req too, from a requirements file or the conversation (a short draft REQUIRE.md and one round of questions). Rerun it after setup to refresh the harness files. Not for changes after setup (hm-change).
+description: Steps 2–3 of the harness flow: plan and set up in one go. Use when the user says "설계 시작해" or "하네스 만들어", or asks for an architecture and SPEC from docs/REQUIRE.md or to create the harness. Asks the D-xx decisions, writes DECISIONS.md and SPEC.md, then builds the harness (AGENTS.md, task files, commands, guardrails) from this skill's templates and commits it. Also starts without REQUIRE.md, and refreshes harness files later. Not for changes after setup (hm-change).
 ---
 
 # Harness Steps 2–3: Plan and set up
@@ -86,13 +86,7 @@ B) pandas in memory — no setup / reloads 120k rows on every start
 ➡️ A: persistent, indexed, and fast enough for `NFR-02`.
 ~~~
 
-- First line: ❓, the ID and a short topic in bold, a colon, the question, then its context with the citation, in CHAT_LANG. Bold the question itself; names, values, paths and IDs in code spans.
-- Question first: the sentence ending in `?` comes right after the colon; the reason, evidence, counts and examples follow it, never before it. Bad: "5 pairs of segments have two records ... Should we use only the newest?" Good: "Should we use only the newest record? For example, `S201→S202` has 266 s from 2025 and 176 s from 2026."
-- One line per option with pros / cons, in plain words: what it means for the product and for me (speed, cost, what gets harder later), not only the technology's name.
-- Blank line, then ➡️ and your recommendation with one line on why. Every decision has one.
-- Only Markdown bold and code spans for emphasis; no HTML, no color codes.
-- A question that comes up later (while writing SPEC or setting up) uses the same format.
-- Questions always come last in the message; nothing follows the last ➡️ line.
+- The rules of the format (question first, options in plain words, one recommendation each, questions last) are in references/question-format.md in this skill's folder: read it before A2. A question that comes up later (while writing SPEC or setting up) uses the same format.
 
 ### Choosing test tools
 The harness does not prescribe test tools. For each testing need that applies, recommend one tool and name one alternative, judged in this order:
@@ -148,4 +142,5 @@ Then do not stop: tell me in at most about 10 lines what the plan is (stack, com
 Read references/setup.md in this skill's folder and follow it (B0 checks, B1 install, B2 task files, B3 harness commands, B4 traceability, B5 git, Finish).
 
 # Refresh
-When the tag harness-init exists, or AGENTS.md has the harness section. Regenerate only what I ask for among AGENTS.md (harness section), docs/REVIEW.md, docs/STANDARDS.md (its Project rules always stay), the commands section of .harness/config, .harness/guardrail-samples, scripts/ and .githooks/, from this skill's current templates and scripts (copy the two scripts directly; run `bash scripts/hm.sh selftest` after a pattern change), and show me the diff before committing (`chore: refresh harness`). Keep project-specific lines I added. A project set up before docs/STANDARDS.md existed: refreshing AGENTS.md or docs/REVIEW.md also adds docs/STANDARDS.md, and lines I added to the old AGENTS.md "Security" or "Backend baseline" sections move into it. Never touch task files, REQUIRE, SPEC or DECISIONS, and never re-tag harness-init. A design change or new requirements go through hm-change.
+When the tag harness-init exists, or AGENTS.md has the harness section. Regenerate only what I ask for among AGENTS.md (harness section), docs/REVIEW.md, docs/STANDARDS.md (its Project rules always stay), the commands section of .harness/config, .harness/guardrail-samples, scripts/ and .githooks/, from this skill's current templates and scripts (copy the two scripts directly; run `bash scripts/hm.sh selftest` after a pattern change), and show me the diff before committing (`chore: refresh harness`).
+Always, whatever I asked to refresh: compare the keys of `templates/config-commands.template` with the commands section of .harness/config. A key the template has and the config lacks was added to the harness after this project was set up (e.g. `TYPECHECK_CMD`): list each with the template's comment and a proposed value from SPEC §2 and the stack, ask in one round, and add the lines (empty when the stack has nothing for it). Never remove or reorder the keys the project has. Keep project-specific lines I added. A project set up before docs/STANDARDS.md existed: refreshing AGENTS.md or docs/REVIEW.md also adds docs/STANDARDS.md, and lines I added to the old AGENTS.md "Security" or "Backend baseline" sections move into it. Never touch task files, REQUIRE, SPEC or DECISIONS, and never re-tag harness-init. A design change or new requirements go through hm-change.

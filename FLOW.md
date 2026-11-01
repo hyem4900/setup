@@ -124,7 +124,7 @@ Root (메인 작업 트리, INTEGRATION 브랜치)
 └─ review-3/          (리뷰용 임시 worktree, 끝나면 제거)
 ```
 
-스킬 파일: `hm-*/SKILL.md` 9개 (수동 8개 + hm-auto). 일부 경우에만 필요한 내용은 따로 두고 그때만 읽음: hm-dev의 `references/tdd.md`(테스트 먼저 루프), `references/debug.md`(디버그 절차), `references/review-and-merge.md`(리뷰 반영·병합. 개발 세션은 읽지 않음), hm-setup의 `references/setup.md`(셋업, 설계가 끝난 뒤 읽음)와 `references/no-require.md`(REQUIRE 없이 시작할 때), hm-auto의 `references/stop-reasons.md`(멈췄을 때만 읽음), hm-req의 `references/interview.md`(§11 질문 양식과 인터뷰 절차. 초안의 §11을 쓸 때부터 읽음)와 `templates/REQUIRE.template.md`·`templates/config.template`(hm-setup도 읽음). 사용하는 에이전트의 스킬 경로에 폴더째 복사함.
+스킬 파일: `hm-*/SKILL.md` 9개 (수동 8개 + hm-auto). 일부 경우에만 필요한 내용은 따로 두고 그때만 읽음: hm-dev의 `references/tdd.md`(테스트 먼저 루프), `references/debug.md`(디버그 절차), `references/review-and-merge.md`(리뷰 반영·병합. 개발 세션은 읽지 않음), hm-setup의 `references/setup.md`(셋업, 설계가 끝난 뒤 읽음)와 `references/no-require.md`(REQUIRE 없이 시작할 때), 여러 스킬이 같이 쓰는 `references/question-format.md`(질문 양식)와 `references/no-harness.md`(하네스 없이 돌 때의 규칙. 원본은 `harness-skills/_shared/`, `sync-shared.sh`로 펼침), hm-auto의 `references/stop-reasons.md`(멈췄을 때만 읽음), hm-req의 `references/interview.md`(§11 질문 양식과 인터뷰 절차. 초안의 §11을 쓸 때부터 읽음)와 `templates/REQUIRE.template.md`·`templates/config.template`(hm-setup도 읽음). 사용하는 에이전트의 스킬 경로에 폴더째 복사함.
 - Codex: `~/.codex/skills/hm-*`
 - Claude Code: `~/.claude/skills/` 또는 프로젝트의 `.claude/skills/`
 - 복사본이라서 setup 폴더에서 스킬을 고치면 다시 복사해야 반영됨. 복사 명령은 아래 "자동 실행 > 설치"에 있음.
@@ -264,6 +264,7 @@ web_HEALTH=http_has http://localhost:$web_PORT/ "$SERVICE-web"
 | D-xx 결정 (기본) | 5 | 3 |
 | 처음 계획 | Task 0 + 약 5개 vertical slice | Task 0 + 약 3개 |
 | 리뷰 정책 기본값 | 되돌리기 어려운 변경(one-way door)만 `each`: 저장된 데이터를 지우거나 좁히거나 다시 쓰는 마이그레이션, 로그인·인증 정보·접근 제어(SEC-xx), 저장소 밖에서 의존하는 계약(공개 API, 공개 파일·이벤트 형식). 나머지는 `batch` + 마지막 "Review all" | FULL과 같음 |
+| 중간 "Review all" 제안 | batch로 병합된 task가 3개 또는 미리뷰 변경이 600줄을 넘으면 `status`와 병합 보고가 "지금 Review all을 권함"을 한 줄 덧붙임. 끝에 한 번에 보는 거대 리뷰를 피하기 위한 것이고, 할지는 내가 정함 | 제안 없음 |
 | 부하 테스트 | 10 / target / 2x | target 1회 |
 
 기본 개수에 도달했는데 중요한 질문이나 결정이 남으면, 계속할지 한 번 물어봄. task는 크기 기준(한 세션 분량, 대략 R-xx 3개 또는 AC 8개 이하)으로 나눔.
@@ -276,7 +277,7 @@ web_HEALTH=http_has http://localhost:$web_PORT/ "$SERVICE-web"
 | 2~3 | hm-setup | "설계 시작해" / "하네스 만들어" (둘 다 같은 스킬) | A | DECISIONS, SPEC (컴포넌트, 컴포넌트 간 계약 포함), AGENTS, docs/tasks/, REVIEW, config 명령 섹션, hooks, scripts, git 커밋 | 기술 스택·D-xx 답 (멈추는 곳은 여기 하나), 마지막 보고에서 계획·task 확인 |
 | 4 | hm-dev | "Start Task <id>." / "Continue Task <id>." (하네스 없이: "개발해: …") | task마다 (병렬이면 task마다 세션 하나씩) | task 브랜치·worktree, 코드, 테스트, 커밋 | 데모 확인 |
 | 5-1 | hm-review | "Review Task <id>." / "Re-review Task <id>." / "Review all." / "Re-review all." / "Review range A..B." / "이 브랜치 리뷰해" | 별도 세션 | artifacts/review/*-<k>.md (덮어쓰지 않음) | — |
-| 5-2 | hm-dev | "리뷰 반영해: <리뷰 파일>" (지적 0건이어도 실행. PR 코멘트 등 아무 형식도 됨) / "Merge Task <id>." / "Merge branch <브랜치>." | 개발 세션 (새 세션이어도 됨) | 수정 커밋, docs/reviews/, Done, 병합 또는 push | 재리뷰 여부, 충돌 판단 |
+| 5-2 | hm-dev | "리뷰 반영해: <리뷰 파일>" (지적 0건이어도 실행. PR 코멘트 등 아무 형식도 됨) / "Merge Task <id>." / "Merge branch <브랜치>." / "Task <id> 되돌려" | 개발 세션 (새 세션이어도 됨) | 수정 커밋, docs/reviews/, Done, 병합 또는 push | 재리뷰 여부, 충돌 판단 |
 | 디버그 | hm-dev (`references/debug.md`) | "디버깅해: …" / "원인 찾아줘: …" / "왜 느린지 찾아줘" (bug task에서 원인이 안 보이거나 같은 테스트가 3번 실패하면 개발 중에 자동으로 씀) | task 세션 안 (task 없이 부르면 진단만) | task 파일 Diagnosis, 회귀 테스트, 수정 커밋 | 재현 루프를 못 만들면 질문 |
 | 변경 | hm-change | "요구사항 추가해: …" / "요구사항 변경해: …" / "버그 등록해: …" / "수정 요청: …" / "Task N 나눠줘" | 아무 때나 | docs/changes/CR-<n>.md, REQUIRE·SPEC·DECISIONS 갱신, 새 task 파일 | 불명확하거나 큰 요청이면 질문, 영향 분석 확인 |
 | 6-1 | hm-load-test | "부하 테스트 해" / "성능 테스트 해" | 새 세션 | perf 브랜치, LOAD_TEST.md (부하 + 벤치마크) | 계약·모델 변경 승인, 끝나면 "Merge branch perf/<n>." |
@@ -430,6 +431,7 @@ task 없이 부르면 진단만 하고 커밋하지 않음. 원인과 최소 재
 2. 병합으로 Markdown이 아닌 파일이 바뀌었을 때만 `hm.sh test`, `e2e`, `check`를 다시 돌림. 문서만 바뀌었거나 바뀐 게 없으면 병합 전 마지막 전체 실행(개발 끝, 리뷰, 리뷰 반영) 결과가 그대로 유효하므로 건너뜀. 리뷰 반영도 수정이 문서뿐이면 `check`만 돌림.
 3. 마무리는 설정에 따라 다름.
    - MERGE=local: 메인 작업 트리(INTEGRATION)에서 `git merge --no-ff`, worktree를 정리함.
+   - 되돌리기: 병합이 항상 `--no-ff`라서 task 하나가 INTEGRATION의 병합 커밋 하나임. "Task N 되돌려"(hm-dev)라고 하면 `git revert -m 1 <병합 커밋>`으로 그 task를 통째로 빼고, 전체 테스트를 돌린 뒤 task 파일을 Dropped로 바꿈. 기능이 영영 없어지는 것이면 hm-change로 요구사항도 정리함. 다른 task가 그 위에 쌓였으면 충돌이 날 수 있어서 물어봄.
    - MERGE=pr: 브랜치를 push하고 PR 본문을 `artifacts/pr/<브랜치>.md`에 씀: 요약(사용자·호출자에게 무엇이 바뀌는지 가장 작은 목록이나 표), 증거(테스트 수, 리뷰 파일, 데모 스크린샷), 병합 위험(되돌릴 수 있는 변경인지, 틀리면 누가 무엇이 깨지는지), 닫는 task와 R-xx. 그 본문으로 PR을 열라고 안내함. 병합되면 끝남.
 
 ## 요구사항 인터뷰 (hm-req)
@@ -480,7 +482,7 @@ hm-change도 요청이 불명확하거나 클 때 같은 방식으로 물음.
 
 ## 설계와 셋업 (hm-setup)
 
-설계(2단계)와 셋업(3단계)은 hm-setup 하나가 이어서 함. "설계 시작해"와 "하네스 만들어" 모두 이 스킬을 시작하고, 이미 진행된 만큼 건너뜀 (SPEC이 있고 task가 없으면 계획을 유지할지 물은 뒤 셋업부터, 셋업이 끝났으면 하네스 파일 갱신만).
+설계(2단계)와 셋업(3단계)은 hm-setup 하나가 이어서 함. "설계 시작해"와 "하네스 만들어" 모두 이 스킬을 시작하고, 이미 진행된 만큼 건너뜀 (SPEC이 있고 task가 없으면 계획을 유지할지 물은 뒤 셋업부터, 셋업이 끝났으면 하네스 파일 갱신만). 갱신 때는 항상 config 명령 섹션을 템플릿과 비교해서, 셋업 이후 하네스에 새로 생긴 키(예: `TYPECHECK_CMD`)를 물어보고 추가함.
 
 - **멈추는 곳은 질문 하나.** 기술 스택과 D-xx에 답하면 DECISIONS·SPEC을 쓰고, 계획을 10줄 정도로 알려 준 뒤 멈추지 않고 셋업까지 함. 계획을 고치고 싶으면 마지막 보고 뒤에 말함. 아직 task가 시작되기 전이라 고치기 쉬움.
 - **기술 스택은 항상 물음.** 백엔드, 프론트엔드(화면이 있을 때), DB·저장소, 그 밖에 해당하는 층(모바일, 큐·워커, CLI 배포)마다 D-xx 하나씩, 질문 수 상한과 별개로 물음. 선택지 2~3개에는 그 층에서 가장 널리 쓰는 선택(웹 화면이면 빌드가 있는 컴포넌트 기반 SPA와 서버 렌더링·단순 페이지 방식 둘 다)을 항상 넣고, 내가 말한 익숙한 언어·프레임워크도 넣음. HACKATHON의 "움직이는 부분 최소" 기준은 추천에만 반영하고 선택지를 줄이지 않음. 원천 문서나 내 답, 기존 코드(GREENFIELD=0)가 이미 정한 층은 묻지 않음.
@@ -594,13 +596,14 @@ task가 너무 커서 MAX_CONTINUE에 걸리면 "Task N 나눠줘"(split)로 쪼
 
 ## 자동 실행 (hm-auto)
 
-1~3단계(요구사항, 설계, 셋업)는 수동으로 하고, 4~5단계(개발, 리뷰, 리뷰 반영, 병합)를 Codex 대화창 하나에서 자동으로 돌림. 수동 흐름은 그대로 동작하고, 이건 그 위에 얹는 선택 사항임.
+1~3단계(요구사항, 설계, 셋업)는 수동으로 하고, 4~5단계(개발, 리뷰, 리뷰 반영, 병합)를 서브에이전트를 띄울 수 있는 대화창 하나에서 자동으로 돌림. 수동 흐름은 그대로 동작하고, 이건 그 위에 얹는 선택 사항임.
+hm-auto는 호스트에 "새 맥락으로 띄우기, 끝나길 기다리기, 질문에 답 보내기, 닫기" 네 동작만 요구하고, 호스트별 도구 이름은 스킬의 표에 있음 (Codex: 시험됨, Claude Code: 아직 시험 안 됨). 답 보내기가 안 되는 호스트에서는 새 서브에이전트에 "Continue Task <id>." + 답을 주는 fallback을 씀.
 
 ### 구조
 
 | 역할 | 누가 | 하는 일 |
 |---|---|---|
-| 오케스트레이터 | 대화창의 Codex (hm-auto 스킬) | 다음 단계를 묻고, 서브에이전트를 띄우고(최대 PARALLEL개), 결과를 확인하고, 데모·질문을 나에게 전달함. 코드나 문서는 직접 고치지 않음 |
+| 오케스트레이터 | 대화창의 에이전트 (hm-auto 스킬) | 다음 단계를 묻고, 서브에이전트를 띄우고(최대 PARALLEL개), 결과를 확인하고, 데모·질문을 나에게 전달함. 코드나 문서는 직접 고치지 않음 |
 | 작업자 | 단계마다 새 서브에이전트 (대화 내용을 물려받지 않음) | `Use the <skill> skill. <트리거 문장> <작업 위치>`로 기존 스킬을 그대로 실행함. task마다 자기 worktree에서만 작업함 |
 | 상태 판단 | `scripts/harness-state.sh` (bash, 에이전트를 호출하지 않음) | task 파일, 브랜치, 리뷰 파일만 보고 다음 단계와 성공 여부를 결정함. 동시 실행 수, 의존성, 병합 한 번에 하나, worktree 포트 배정을 지킴. 오케스트레이터의 기억에 의존하지 않음 |
 
@@ -628,7 +631,7 @@ bash scripts/harness-state.sh worktree 3
 
 | 스크립트 명령 | 용도 |
 |---|---|
-| `status` | 상태 표 (브랜치를 가로질러) |
+| `status` | 상태 표 (브랜치를 가로질러). 리뷰 없이 병합된 task가 있으면 `review backlog: N task(s) …, M lines changed` 한 줄을 더 보여 주고, FULL 모드에서 task 3개 또는 600줄 이상이면 `(suggest: Review all.)`를 붙임 (`REVIEW_ALL_TASKS`, `REVIEW_ALL_LINES`로 조정). 제안일 뿐 스크립트가 실행하지는 않음 |
 | `plan <target>` | task별 다음 단계 (변경 없음) |
 | `worktree <id>` | task(또는 `review-3` 같은 보조 worktree)의 경로, 브랜치, 기준 브랜치, PORT_OFFSET, 막고 있는 의존 task |
 | `run-begin <target> [--no-demo]` | 검증, lock, 실행별 카운터 초기화. `--no-demo`면 데모 확인 없이 진행 |
@@ -693,7 +696,7 @@ target: `<id>`, `<id>,<id>`, `N-M`(숫자 ID), `all`, `review-all`. 환경 변�
 | 데모 확인에서 "중단" | 내가 멈춤 | 다시 "자동으로 진행해". 답하지 않은 데모는 보고에 나옴. 재개하면 그 task의 리뷰·병합으로 넘어가므로 먼저 확인함 |
 
 재개는 언제나 같은 명령("자동으로 진행해")임. 상태가 파일과 브랜치에 있어서 잃는 것이 없음.
-각 단계의 서브에이전트 마지막 메시지는 `artifacts/runs/<run>/<NN>-<action>-<task>.md`에 저장됨.
+각 단계의 서브에이전트 마지막 메시지는 `artifacts/runs/<run>/<NN>-<action>-<task>.md`에 저장됨. 단계별 소요 시간과 결과는 같은 폴더의 `summary.tsv`에 쌓임 (step, action, task, 시작 시각, 초, 결과). 마지막 보고가 단계 종류별 합계와 가장 느린 단계를 알려 주므로, PARALLEL을 올릴지 리뷰가 병목인지 여기서 판단함.
 
 ### 스크립트가 의존하는 규칙
 
@@ -713,7 +716,7 @@ target: `<id>`, `<id>,<id>`, `N-M`(숫자 ID), `all`, `review-all`. 환경 변�
 | 명령 키 `INSTALL_CMD`, `MIGRATE_CMD`, `TEST_CMD`, `LINT_CMD`, `TYPECHECK_CMD`, `FORMAT_CMD`, `E2E_SETUP_CMD`, `E2E_CMD`, `DEV_CMD`, `LOAD_CMD`, `BENCH_CMD`, `SECURITY_CMD`, `SECRET_PATTERN`, `TEST_DIRS`, `E2E_DIRS`, `SKIP_PATTERN`, `SELECTOR_PATTERN`, `LOAD_TARGET_USERS`, `LOAD_LEVELS`, `LOAD_DURATION`, `SERVICE`. `hm.sh test`·`e2e`에 준 인자는 명령의 `"$@"` 자리에 들어감 | hm-setup B5, config 명령 템플릿 |
 | 컴포넌트 키 `COMPONENTS`, `<c>_DEV`, `<c>_PROD`, `<c>_PORT`(기본값), `<c>_HEALTH`, `UP_CMD`, `DOWN_CMD` (hm.sh가 읽음) | hm-setup B5, config 명령 템플릿 |
 
-### 설치 (Codex)
+### 설치 (Codex, Claude Code)
 
 스킬 폴더를 Codex 스킬 경로로 복사함. setup에서 스킬을 고치면 같은 명령으로 다시 복사해야 함 (이 저장소 루트에서, Git Bash). Claude Code도 쓰면 `~/.claude/skills/`에도 같은 방식으로 복사함:
 
@@ -723,7 +726,8 @@ for d in harness-skills/hm-*; do rm -rf ~/.claude/skills/"${d##*/}"; cp -r "$d" 
 ```
 
 실제 에이전트로 쓰기 전에 확인할 것:
-- Codex의 multi-agent 기능이 켜져 있어야 함 (`codex features list`에서 `multi_agent  stable  true`)
-- 서브에이전트가 파일을 쓰고 `bash`, `git`을 실행해야 함. worktree는 저장소 밖(WORKTREE_DIR)에 만들어지므로 Codex sandbox가 그 경로에도 쓸 수 있어야 함 (`workspace-write`에 경로 추가, 또는 그 이상). 승인 정책에 따라 서브에이전트의 명령 승인 요청이 대화창에 뜸
+- Codex: multi-agent 기능이 켜져 있어야 함 (`codex features list`에서 `multi_agent  stable  true`)
+- Claude Code: `Agent` 도구로 서브에이전트를 띄움 (fork가 아닌 일반 타입). 아직 실제 run으로 시험하지 않았으므로 Task 하나로 먼저 확인함
+- 서브에이전트가 파일을 쓰고 `bash`, `git`을 실행해야 함. worktree는 저장소 밖(WORKTREE_DIR)에 만들어지므로 호스트의 sandbox가 그 경로에도 쓸 수 있어야 함 (Codex: `workspace-write`에 경로 추가, 또는 그 이상). 승인 정책에 따라 서브에이전트의 명령 승인 요청이 대화창에 뜸. 명령마다 승인을 물으면 "자동"이 아니므로, 자동 실행 전에 그 프로젝트의 허용 규칙을 넉넉히 둠
 - MERGE=pr이면 git이 REMOTE에 push할 수 있어야 함 (인증)
 - 처음에는 데모 게이트를 켠 채 Task 하나(`Task 0 자동으로`)로 시험하고, 그다음 PARALLEL을 올림

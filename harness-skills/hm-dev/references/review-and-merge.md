@@ -65,7 +65,10 @@ For a Done task, a `Review: batch` task that is In Review (after its demo), a re
    - Closes: Task <id> and its R-xx (review all: the tasks in the range)
    Tell me to open (or update) the pull request from <branch> into INTEGRATION with that body, and merge it after the team's checks. The task counts as finished once it is merged.
 
+## Undoing a merged task
+Every merge is `--no-ff`, so one task is one merge commit on INTEGRATION and can be taken out whole: `git revert -m 1 <merge commit>` (find it with `git log --merges --oneline -- docs/tasks/<id>.md`). Do it only when I ask ("Task <id> 되돌려" / "revert Task <id>"), on INTEGRATION in a clean main worktree, with the full `test`, `e2e` and `check` afterwards; commit as `revert(task-<id>): <reason>`. Then set the task file to Dropped with the revert commit in its Log (that status line is parsed, so keep it exact), and tell me to record the requirement change through hm-change ("요구사항 변경해: ..." / a removal) if the behavior is gone for good; a task that will come back later instead stays Done and gets a new task through hm-change. With MERGE=pr, push the revert as a branch for a pull request like any change. A revert of a task that others already built on may conflict: stop and ask, as for any logic conflict.
+
 ## End of Apply review and Integrate
-Report in CHAT_LANG: fixed / deferred / rejected counts, test results, final status, whether it was merged (or pushed and waiting for the team, with the PR body path), and the next step, including tasks that the merge unblocked.
+Report in CHAT_LANG: fixed / deferred / rejected counts, test results, final status, whether it was merged (or pushed and waiting for the team, with the PR body path), and the next step, including tasks that the merge unblocked (`bash scripts/harness-state.sh status`). If that status prints a `review backlog:` line ending in `(suggest: Review all.)`, say in Next that enough batch work is merged to be worth a "Review all." in a separate session now rather than at the end; it is a suggestion, I decide.
 Then, if any finding was `mechanical`, add **Checks to add**: per finding, the rule a check would enforce (a LINT_CMD rule or a guardrail pattern in .harness/config) and what it would have caught. I decide; an approved check becomes a chore task through hm-change.
 Then stop.

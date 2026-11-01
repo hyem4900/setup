@@ -40,7 +40,7 @@ append_missing() { # append_missing <file> <line>...: append each line the file 
 
 mkdir -p scripts docs/tasks artifacts .run .githooks
 
-# Scripts: always the skill's current version.
+# Scripts: always the skill's current version (test-harness-state.sh stays in the skill folder).
 for s in hm.sh harness-state.sh; do
   cp "$SKILL/scripts/$s" "scripts/$s"
   chmod +x "scripts/$s"

@@ -11,9 +11,11 @@
 | `CHANGELOG.md` | 버전 사이에 바뀐 것 (v3 → v4 비교표) |
 | `harness-skills/hm-*/SKILL.md` | 단계별 스킬 9개. hm-dev는 개발·리뷰 반영·병합을 함께 맡음 |
 | `harness-skills/hm-*/references/`, `hm-req/templates/` | 일부 경우에만 읽는 내용: hm-dev의 `tdd.md`(테스트 먼저 루프)·`debug.md`(디버그 절차)·`review-and-merge.md`(리뷰 반영·병합), hm-setup의 `setup.md`(셋업, Part B)·`no-require.md`(REQUIRE 없이 시작), hm-auto의 `stop-reasons.md`(멈춤 사유 표), hm-req의 `interview.md`(§11 질문 양식과 인터뷰 절차)와 REQUIRE 양식·config 양식 (hm-setup도 읽음) |
+| `harness-skills/_shared/`, `harness-skills/sync-shared.sh` | 여러 스킬이 같이 쓰는 문단의 원본: `question-format.md`(질문 양식), `no-harness.md`(하네스 없이 돌 때의 규칙·기본값). `sync-shared.sh`가 각 스킬의 `references/`로 복사함. **복사본을 직접 고치지 말고** 원본을 고친 뒤 sync. 스킬 본문에 남긴 "Other skills"·"Files I name" 두 단락은 짧고 중요해서 일부러 각 스킬에 그대로 둠 |
 | `harness-skills/hm-setup/templates/` | hm-setup이 프로젝트로 복사하는 템플릿 (SPEC, AGENTS, REVIEW, STANDARDS, task 파일, config 명령 섹션, 가드레일 예시). 형식을 바꾸면 스킬 본문과 함께 고침 |
 | `harness-skills/hm-setup/scripts/install.sh` | 셋업 때 고정 파일(스크립트, 템플릿, hook, gitignore·gitattributes 줄, config 명령 섹션)을 한 번에 넣는 설치 스크립트. 있는 파일은 덮어쓰지 않음 |
 | `harness-skills/hm-setup/scripts/harness-state.sh` | task 파일·브랜치·리뷰 파일로 "다음에 뭘 할지"를 판단하는 스크립트 (자동 실행, worktree 경로·포트 배정) |
+| `harness-skills/hm-setup/scripts/test-harness-state.sh` | `harness-state.sh`를 임시 저장소에서 검증하는 테스트. 이 저장소 전용이며 프로젝트로 복사되지 않음. 스크립트나 "스크립트가 의존하는 규칙"을 고치면 실행 (Windows에서 몇 분 걸림) |
 | `harness-skills/hm-setup/scripts/hm.sh` | 프로젝트의 하네스 명령 (setup, test, e2e, security, check, selftest, dev-bg 등). 명령 내용은 `.harness/config`에서 읽음. 컴포넌트 기동·health check·종료 포함 |
 | `setup.md` | 하네스와 별개인 예전 개인 설정 메모 |
 
@@ -46,14 +48,15 @@
 - `harness-state.sh`, `hm.sh`, hook 예시는 ASCII만 씁니다 (Windows에서 한글이 깨짐).
 - 하네스는 make 같은 별도 빌드 도구에 의존하지 않습니다. 필요한 건 git과 bash뿐입니다.
 - 스크립트는 macOS 기본 bash 3.2에서도 돌아야 합니다 (연관 배열 등 bash 4 기능 금지).
-- 스크립트가 읽는 형식(`FLOW.md` "스크립트가 의존하는 규칙")을 바꾸면 `harness-state.sh`와 `hm.sh`도 함께 고칩니다.
+- 스크립트가 읽는 형식(`FLOW.md` "스크립트가 의존하는 규칙")을 바꾸면 `harness-state.sh`와 `hm.sh`도 함께 고칩니다. `harness-state.sh`를 고쳤으면 `bash harness-skills/hm-setup/scripts/test-harness-state.sh`가 `failed 0`으로 끝나야 합니다.
 
 ## 고친 뒤 반드시: Codex로 복사
 
 Codex는 `~/.codex/skills/`에 있는 **복사본**을 씁니다. 여기서 고쳐도 자동으로 반영되지 않습니다.
-`harness-skills/` 아래를 고쳤다면, 작업을 마치기 전에 저장소 루트에서 실행합니다 (Git Bash):
+`harness-skills/` 아래를 고쳤다면, 작업을 마치기 전에 저장소 루트에서 실행합니다 (Git Bash). 첫 줄이 공유 문단을 각 스킬로 펼칩니다 (`--check`가 실패하면 누가 복사본을 직접 고친 것이므로 원본과 맞춥니다):
 
 ```bash
+bash harness-skills/sync-shared.sh && bash harness-skills/sync-shared.sh --check
 for d in harness-skills/hm-*; do rm -rf ~/.codex/skills/"${d##*/}"; cp -r "$d" ~/.codex/skills/; done
 for d in harness-skills/hm-*; do rm -rf ~/.claude/skills/"${d##*/}"; cp -r "$d" ~/.claude/skills/; done
 diff -rq harness-skills ~/.codex/skills | grep hm- || echo "copies identical"

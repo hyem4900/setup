@@ -1,6 +1,6 @@
 ---
 name: hm-review
-description: Step 5-1 of the harness flow. Use in a separate session when the user says "Review Task <id>.", "Re-review Task <id>.", "Review all.", "Re-review all.", "Review range A..B." or "이 브랜치 리뷰해" / "Review this branch." (any repository, with or without the harness). Read-only review on two axes kept apart (Spec: built what was asked; Standards: built the project's way), run on the exact commit under review. Also works for a teammate's pushed task branch.
+description: Step 5-1 of the harness flow. Use in a separate session for "Review Task <id>.", "Re-review Task <id>.", "Review all.", "Re-review all.", "Review range A..B." or "이 브랜치 리뷰해" / "Review this branch." (with or without the harness). Read-only review on two axes (Spec: built what was asked; Standards: built the project's way) at the exact commit under review; also for a teammate's pushed branch.
 ---
 
 # Harness Step 5-1: Review
@@ -11,7 +11,7 @@ Files I name: a file named in my message is the first source for the role I give
 
 ## Inputs
 Find each input in this order, and name in the review the file that served (e.g. `Spec source: README.md (stand-in for REQUIRE.md)`): a file I name → the harness file → a file in the repository that plays the same role (ask once if several fit) → the fallback.
-Without the harness (no .harness/config), create none of .harness/config, AGENTS.md, scripts/ or git hooks: they belong to hm-setup, and other skills would take them for a finished setup. For this session use: CHAT_LANG the language I write in; DOC_LANG the language of the repository's docs, else English; INTEGRATION the repository's default branch (`origin/HEAD`, else main or master; ask if none); the repository's own commands (package scripts, task runner, Makefile; ask once if unclear) wherever this skill says `bash scripts/hm.sh <name>`. Ask questions as ❓ **topic**: question, then ➡️ your recommendation, last in the message.
+Without the harness (no .harness/config): follow references/no-harness.md in this skill's folder (what not to create, the defaults for languages, branch, commands and scratch files, and the question format). With the harness, AGENTS.md covers this and you read it first.
 
 | Input | Harness file | Stand-ins to look for | Fallback |
 |---|---|---|---|

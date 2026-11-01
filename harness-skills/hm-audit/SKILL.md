@@ -1,6 +1,6 @@
 ---
 name: hm-audit
-description: Step 6-2 of the harness flow. Use when the user says "누락 검토해" (or "누락 검토해: <requirements doc>", also without the harness) or asks for a traceability check. Maps every requirement in docs/REQUIRE.md (or the document given) and every accepted change request to tasks and tests on the integration branch, finds gaps and requirement-source violations, lists structural deepening candidates in the code that changes most, and runs a retro on findings that keep coming back; reports before fixing. Can be run at any time, also mid-project.
+description: Step 6-2 of the harness flow. Use for "누락 검토해" (or "누락 검토해: <requirements doc>", also without the harness) or a traceability check. Maps every requirement and accepted change request to tasks and tests on the integration branch, finds gaps and source violations, lists deepening candidates in the most-changed code and runs a retro on recurring findings; reports before fixing. Any time, also mid-project.
 ---
 
 # Harness Step 6-2: Traceability audit
@@ -11,7 +11,7 @@ Files I name: a file named in my message is the first source for the role I give
 
 ## Inputs
 Find each input in this order, and name in TRACEABILITY.md the file that served (e.g. `Requirements: docs/prd.md (stand-in for REQUIRE.md)`): a file I name ("누락 검토해: <file>") → the harness file → a file in the repository that plays the same role (ask once if several fit) → the fallback.
-Without the harness (no .harness/config), create none of .harness/config, AGENTS.md, scripts/ or git hooks: they belong to hm-setup, and other skills would take them for a finished setup. For this session use: CHAT_LANG the language I write in; DOC_LANG the language of the repository's docs, else English; INTEGRATION the repository's default branch (`origin/HEAD`, else main or master; ask if none); the repository's own commands (package scripts, task runner, Makefile; ask once if unclear) wherever this skill says `bash scripts/hm.sh <name>`. Ask questions as ❓ **topic**: question, then ➡️ your recommendation, last in the message.
+Without the harness (no .harness/config): follow references/no-harness.md in this skill's folder (what not to create, the defaults for languages, branch, commands and scratch files, and the question format). With the harness, AGENTS.md covers this and you read it first.
 
 | Input | Harness file | Stand-ins to look for | Fallback |
 |---|---|---|---|

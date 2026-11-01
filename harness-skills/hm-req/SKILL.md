@@ -1,6 +1,6 @@
 ---
 name: hm-req
-description: Step 1 of the harness flow. Use when the user says "요구사항 정리 시작해" or "요구사항 끝까지 파고들어" / "grill me" before a project starts, or asks to turn a project idea, README, PRD or existing repo into requirements. Detects the project profile, asks how work is run, and writes .harness/config and docs/REQUIRE.md: a short draft with every open point as a question, then an interview in rounds (in the file or in chat) until a confirmed summary. Requirement changes after setup go through hm-change instead.
+description: Step 1 of the harness flow: requirements. Use when the user says "요구사항 정리 시작해", "요구사항 끝까지 파고들어" / "grill me", or asks to turn an idea, README, PRD or existing repo into requirements. Detects the project profile, asks how work is run, writes .harness/config and docs/REQUIRE.md (a draft with every open point as a question, then an interview in rounds). Changes after setup go through hm-change.
 ---
 
 # Harness Step 1: Requirements
@@ -102,21 +102,7 @@ Rules:
 ## Step 3: Interview
 The goal is a shared understanding, not a filled form. Keep asking until we would describe the product, its rules and its words the same way.
 
-Question format (every question in this skill, including Step 0 items 2 and 3):
-
-~~~
-❓ **Q-08 — Missing transfer time**: May a **common default transfer time** apply between same-name stations, and if so, how many seconds? `Yesol` and `Geumbit` share a name, but the data gives no walking time between them.
-
-➡️ Allow transfers between same-name stations and apply a common default time confirmed by the owner: the sources treat them as one station everywhere else.
-~~~
-
-- First line: ❓, then the ID and a short topic in bold, a colon, then the question and its context in one to three sentences in CHAT_LANG. Bold the phrase the decision hinges on.
-- Question first: the sentence ending in `?` comes right after the colon; the reason, evidence, counts and examples follow it, never before it. Bad: "5 pairs of segments have two records ... Should we use only the newest?" Good: "Should we use only the newest record? For example, `S201→S202` has 266 s from 2025 and 176 s from 2026."
-- Names, values, file paths and IDs from the project go in code spans.
-- If there are options, list them between the question and the recommendation, one line each: `A) ...`, `B) ...`. Each option says in plain words what will happen and what I gain or give up; config keys or technical names only in parentheses after that.
-- Blank line, then ➡️ and your recommended answer with one line on why. Every question has one. If you cannot recommend, say what you would need to know, and recommend the safest choice meanwhile.
-- Use only Markdown bold and code spans for emphasis (clients render them in accent colors); no HTML, no color codes.
-- Questions always come last in the message. Findings, explanations, tables and summaries go first; nothing follows the last ➡️ line.
+Question format: references/question-format.md in this skill's folder. Read it before your first question (Step 0 items 2 and 3 use it too).
 
 Procedure: read references/interview.md in this skill's folder and follow it: the §11 question-list format, the two ways I can answer (in the file or in chat, in rounds), what to ask and in which order, how to challenge vague or contradicting answers, how to pin terms, how to record answers in batches, when to stop, and the summary check that ends the interview.
 

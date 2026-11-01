@@ -1,6 +1,6 @@
 ---
 name: hm-security
-description: Step 6-3 of the harness flow. Use when the user says "보안 점검해", "보안 테스트 해", "보안 리뷰해", "security review", or asks to test, check or harden the security of the project (password storage and rainbow tables, access control, injection, secrets, dependencies). Runs in a separate session: maps the attack surface, runs the security scans, writes security tests and runs them against this project's own local components, and writes a security review (results, problems with evidence and severity, improvement directions) to docs/security/. Also works in a repository without the harness. Does not fix product code or merge; findings become tasks through hm-change ("보안 리뷰 반영해: <file>").
+description: Step 6-3 of the harness flow. Use for "보안 점검해", "보안 테스트 해", "보안 리뷰해", "security review", or any request to test or harden security. In a separate session: maps the attack surface, runs the scans, writes security tests against the local components, and writes docs/security/review-<k>.md (findings with evidence and severity, improvements). Works without the harness. Does not fix product code or merge; findings become tasks through hm-change.
 ---
 
 # Harness Step 6-3: Security test and review
@@ -16,7 +16,7 @@ Attack only what is yours to attack: this project's code, and its components sta
 
 ## Inputs
 Find each input in this order, and name in the review the file that served (e.g. `Security requirements: docs/security-policy.md (stand-in for REQUIRE §10)`): a file I name → the harness file → a file in the repository that plays the same role (ask once if several fit) → the fallback.
-Without the harness (no .harness/config), create none of .harness/config, AGENTS.md, scripts/ or git hooks: they belong to hm-setup, and other skills would take them for a finished setup. For this session use: CHAT_LANG the language I write in; DOC_LANG the language of the repository's docs, else English; INTEGRATION the repository's default branch (`origin/HEAD`, else main or master; ask if none); WORKTREES=0, MERGE=local; the repository's own commands (package scripts, task runner, Makefile; ask once if unclear) wherever this skill says `bash scripts/hm.sh <name>`; scratch files in the OS temp directory unless git ignores artifacts/. Ask questions as ❓ **topic**: question, then ➡️ your recommendation, last in the message.
+Without the harness (no .harness/config): follow references/no-harness.md in this skill's folder (what not to create, the defaults for languages, branch, commands and scratch files, and the question format). With the harness, AGENTS.md covers this and you read it first.
 
 | Input | Harness file | Stand-ins to look for | Fallback |
 |---|---|---|---|
