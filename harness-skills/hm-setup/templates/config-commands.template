@@ -1,0 +1,49 @@
+# Commands (hm-setup, from SPEC 2)
+SERVICE=<project-name>
+INSTALL_CMD=...
+# TEST_CMD and E2E_CMD: put "$@" where the runner takes test files or a name filter, so
+# `bash scripts/hm.sh test <file>` runs only those and no arguments runs everything.
+TEST_CMD=... "$@"
+# LINT_CMD: the linter and the formatter's check mode, taking files as "$@" (paths from the
+# project root; no arguments = the whole project). The pre-commit hook runs it on the staged
+# code files only; a direct `check` runs it on everything.
+# TYPECHECK_CMD: the type checker over the whole project. Runs only in a direct `check` (task
+# end, review, merge), never in the pre-commit hook. Empty if the language has none.
+# FORMAT_CMD: the formatter, rewriting the files given as "$@" and skipping file types it does
+# not handle. The pre-commit hook runs it on the staged code files.
+LINT_CMD=... "$@"
+TYPECHECK_CMD=
+FORMAT_CMD=... "$@"
+E2E_SETUP_CMD=
+E2E_CMD=... "$@"
+DEV_CMD=
+LOAD_CMD=
+BENCH_CMD=
+MIGRATE_CMD=
+SECURITY_CMD=...
+SECRET_PATTERN=-----BEGIN [A-Z ]*PRIVATE KEY-----|AKIA[0-9A-Z]{16}|(password|passwd|pwd|secret|api_?key|access_?token|auth_?token|client_?secret)["']?[[:space:]]*[:=][[:space:]]*["'][^"'[:space:]]{8,}["']
+TEST_DIRS=...
+E2E_DIRS=...
+SKIP_PATTERN=...
+SELECTOR_PATTERN=...
+LOAD_TARGET_USERS=...
+LOAD_LEVELS=10 <target> <2x target>
+LOAD_DURATION=2m
+# Per-worktree resources from SPEC 2, derived from HM_SLOT (0 in the main worktree), e.g.
+# DATABASE_URL=postgres://localhost:5432/myapp_$HM_SLOT
+# COMPOSE_PROJECT_NAME=myapp-$HM_SLOT
+# Components from SPEC 2, in start order (a component's dependencies first).
+# A single-process app has one entry. Names: letters, digits, underscore.
+COMPONENTS=api web
+api_PORT=8000
+api_DEV=<dev command, with reload, listening on $api_PORT>
+api_PROD=<production-like command, no reload, N workers, on $api_PORT>
+api_HEALTH=http_has http://localhost:$api_PORT/healthz "$SERVICE-api"
+web_PORT=5173
+web_DEV=<dev command on $web_PORT, pointed at the api on $api_PORT>
+web_PROD=...
+web_HEALTH=http_has http://localhost:$web_PORT/ "$SERVICE-web"
+# Optional: one launcher that starts and stops every component instead (it must return
+# after starting them). Health checks above still decide when they are ready.
+UP_CMD=
+DOWN_CMD=

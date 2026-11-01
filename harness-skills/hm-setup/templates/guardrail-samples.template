@@ -1,0 +1,8 @@
+# Guardrail samples, read by `bash scripts/hm.sh selftest`. One sample per line: <kind>: <text>
+# The text after "<kind>: " is matched against the pattern in .harness/config.
+#   skip:            a line in each style the unit and E2E tools use to skip or disable a test (SKIP_PATTERN must catch it)
+#   selector-deny:   (HAS_UI=1) one line per denied element-selection style of the UI E2E tool (SELECTOR_PATTERN must catch it)
+#   selector-allow:  (HAS_UI=1) one line per allowed style, at least a test-id lookup (SELECTOR_PATTERN must not catch it)
+#   secret:          a fake value in each key format this project adds to SECRET_PATTERN (it must catch it)
+#   secret-allow:    a line that looks close but is fine, e.g. a value read from the environment (it must not catch it)
+# Fake values only. This file is excluded from the secret check.

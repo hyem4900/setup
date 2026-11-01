@@ -1,0 +1,20 @@
+# .harness/config - read by every harness skill and by scripts/hm.sh. hm-setup appends the commands section.
+# One KEY=value per line, no spaces around =. The value is the rest of the line, taken literally. No inline comments. Lists are separated by spaces; no spaces inside a path.
+MODE=FULL
+SESSION_PER_TASK=1
+REQ_SOURCES=README.md
+DATA_SOURCES=data/
+PROTECTED=README.md data/
+GREENFIELD=1
+HAS_SERVER=1
+HAS_UI=1
+HAS_LOAD=0
+INTEGRATION=main
+MERGE=local
+REMOTE=origin
+PARALLEL=1
+WORKTREES=0
+WORKTREE_DIR=../myapp-wt
+CHAT_LANG=Korean
+DOC_LANG=English
+AGENT_FILES=CLAUDE.md

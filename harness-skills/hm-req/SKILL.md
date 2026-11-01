@@ -1,0 +1,130 @@
+---
+name: hm-req
+description: Step 1 of the harness flow. Use when the user says "요구사항 정리 시작해" or "요구사항 끝까지 파고들어" / "grill me" before a project starts, or asks to turn a project idea, README, PRD or existing repo into requirements. Detects the project profile, asks how work is run, and writes .harness/config and docs/REQUIRE.md: a short draft with every open point as a question, then an interview in rounds (in the file or in chat) until a confirmed summary. Requirement changes after setup go through hm-change instead.
+---
+
+# Harness Step 1: Requirements
+
+Talk to me in the language I write in (it becomes CHAT_LANG; Korean if unclear). Write documents in DOC_LANG once it is set (default English). Code, identifiers and the fixed tokens scripts parse stay in English.
+Until .harness/config exists, treat every file that existed before this session as read-only.
+Other skills: use another skill only when my message names it or a step of this skill names it. An installed skill whose description seems to fit the work (a design system, charts, documents) stays unused, unless SPEC or DECISIONS records that I chose it.
+Files I name: a file named in my message is the first source for the role I give it, and harness files only fill what it lacks. If they disagree, show the difference and ask which one wins. If it is missing or does not fit that role, say so in one line and go on without it. Read it; edit it only if I ask.
+
+## Step 0: Project profile
+If .harness/config already exists, this is a rerun: show its current values, ask what changed, and update only those keys. Do not re-detect from scratch. Ask any key from the table below that is missing (older config). If docs/REQUIRE.md still has open `[Q-xx]` markers or unanswered §11 questions, the interview was cut off: resume it at Step 3. Answers given in an earlier chat but never applied are not in the file; if you cannot see them in this conversation, ask those questions again. If I want to add or change requirements and docs/REQUIRE.md is finished, tell me to use hm-change (e.g. "요구사항 추가해: ..." / "add a requirement: ...") and stop.
+
+Otherwise, scan the repository before asking anything.
+Never scan: .git/, dependency and build output (node_modules/, .venv/, venv/, vendor/, dist/, build/, target/, .next/, __pycache__/), artifacts/, .run/.
+Files this harness writes are never sources: AGENTS.md, .harness/, docs/DISCOVERY.md (older harness versions), REQUIRE.md, SPEC.md, DECISIONS.md, REVIEW.md, LOAD_TEST.md, TRACEABILITY.md, docs/tasks/, docs/reviews/, docs/changes/. Task files and change records written before setup (skills used without the harness) are context, not sources: read them so the requirements cover what they built or planned, and list them in the profile message.
+
+| Key | How to detect |
+|---|---|
+| REQ_SOURCES | README*, docs/**/*.md, PRD/spec/brief files. Skip CHANGELOG, LICENSE, CONTRIBUTING, CODE_OF_CONDUCT. If I pasted requirement text in chat, save it verbatim to docs/BRIEF.md and use that path. If none, `INTERVIEW` |
+| DATA_SOURCES | Files or directories with .csv .tsv .json .jsonl .parquet .xlsx .sql .db .sqlite that hold product data. Exclude config, manifest and lock files (package*.json, tsconfig*.json, composer.json, *.lock, .eslintrc*, .vscode/, .devcontainer/), test fixtures, and schema migrations (migrations/, db/migrate/). If a file is unclear, list it as a candidate with the reason and let me decide. Empty if none |
+| GREENFIELD | 0 if there is application source code or a build file (package.json, pyproject.toml, go.mod, pom.xml, Cargo.toml ...), else 1 |
+| HAS_SERVER | 1 if the product has any long-running process: an HTTP API, a web front end served by a dev server, a worker, a queue consumer, a scheduler. 0 for a pure CLI, library or one-shot batch job |
+| HAS_UI | 1 if users interact through screens: browser, mobile or desktop app. Independent of HAS_SERVER |
+| HAS_LOAD | 1 only if HAS_SERVER=1 and the sources give a number for concurrent users, traffic, or latency under load. The word "users" alone is not enough. Else 0. Can change after the interview |
+| PROTECTED | REQ_SOURCES files (none if INTERVIEW) and DATA_SOURCES by default. For GREENFIELD=0, also anything I say must not change |
+| CHAT_LANG | The language I write in (e.g. Korean, English). Shown for confirmation, not guessed from the repository |
+| DOC_LANG | The language of the existing docs and code comments (GREENFIELD=0), else English. The language for REQUIRE, SPEC, task files and reviews; code, identifiers and the fixed tokens scripts parse stay in English |
+| AGENT_FILES | Agent entry files that should point to AGENTS.md: existing ones in the repo (CLAUDE.md, GEMINI.md, .github/copilot-instructions.md, ...), plus CLAUDE.md by default. Empty if I use only agents that read AGENTS.md |
+
+Also list the components you can see (evidence for hm-setup, not a config key): separate apps or services in the repo or the sources (e.g. api/, web/, worker/, mobile/, packages in a monorepo), each with its language and how it seems to start.
+
+Paths in config must not contain spaces. If one does, tell me and propose a rename or a symlink.
+
+Then send me ONE message in CHAT_LANG with items 1-4 below. Order in the message: item 4 (the profile table) first, then the questions for items 1, 2 and 3, last.
+
+Explain, do not list keys. I may not know the harness. For items 1-3, each option is one or two plain sentences on what will actually happen in my day-to-day work (who opens which chat, what runs at the same time, where code gets merged, what I gain and give up). Config keys and values come last, in parentheses in code spans, as a reference only. Never present an option as only `KEY=value` pairs, and never bundle items 1-3 into one combined option; ask each as its own question (❓ / ➡️ format), each with its own recommendation.
+
+Example of one option (in CHAT_LANG):
+> Solo, one task at a time: you work through the tasks in order. Each task gets its own branch, and after review it is merged into `main` on this PC. The simplest setup; nothing runs in parallel. (`PARALLEL=1`, `WORKTREES=0`, `MERGE=local`)
+
+1. Mode: how much process the project gets. Recommend HACKATHON if I mention a time limit under one day. Mode only sets defaults, never hard caps. Explain what each changes:
+   - FULL: a thorough requirements interview (about 10 questions), a first plan of about five tasks, and at the end load tests at three levels (if there are load targets).
+   - HACKATHON: a short interview (about 5 questions), a first plan of about three tasks, and one load run at the target.
+   - Both: only tasks that are hard to undo (a migration that rewrites stored data, sign-in and access control, a contract outside users rely on) are reviewed on their own before merging; the rest are merged after their demo and reviewed together at the end.
+2. Task sessions (SESSION_PER_TASK). This is my choice, so always ask; never infer it. In the question, explain in plain words (at most about five lines):
+   - What it decides: whether each task in step 4 ("Start Task <id>.") is developed in a new chat session, or whether the next task may follow in the same chat after the previous task's demo.
+   - Why it matters: a session carries everything said and read so far. A new session knows only the docs and git history, so assumptions from an earlier task cannot leak in. Staying in one session saves restarting and rereading, but the context keeps growing: older details get compressed or lost, and long sessions get slower and cost more.
+   - The options:
+     - New chat per task (1): I open a new chat for every task. Clean context per task. Recommend for FULL.
+     - Same chat allowed (0): after a task's demo, I may say "Start Task <id>." in the same chat. Faster, but context grows. Recommend for HACKATHON.
+   - Either way: a task that runs out of context continues in a new session ("Continue Task <id>."), hm-auto runs every step in a fresh sub-agent regardless of this value, and I can change it later in .harness/config.
+3. How work is run. Also my choice, so always ask. Recommend one option, describe each in plain words, and mention the follow-up settings only for the option that needs them:
+   - Solo, one task at a time: tasks run in order, each on its own branch, merged into INTEGRATION on this PC after review. Simplest; nothing runs in parallel. Recommend for HACKATHON. (`PARALLEL=1`, `WORKTREES=0`, `MERGE=local`)
+   - Solo, several tasks at once: tasks that do not depend on each other run at the same time, each in its own folder (a git worktree) with its own ports, so they do not collide. Faster with hm-auto, but more processes and more to check at once; merges still happen one at a time. Ask where the extra folders go (WORKTREE_DIR: outside the repo, no spaces, default `../<repo>-wt`). (`PARALLEL=2`-`3`, `WORKTREES=1`, `MERGE=local`)
+   - Team: like the previous option, but finished task branches are pushed to the shared remote and merged through the team's pull requests instead of on this PC. A pushed branch tells teammates the task is taken. Choosing this allows the harness to push task branches. Ask for the remote name (REMOTE, default `origin`). (`PARALLEL` as wanted, `WORKTREES=1`, `MERGE=pr`)
+   - In all options, tasks start from and merge into the current branch (INTEGRATION); mention it in one line and let me change it.
+4. The detected profile as a table: key, detected value, evidence (file names), anything you excluded that looked close, and the components you saw. Add a short plain-language column for what each key means for the project (e.g. HAS_UI=1: "users work through screens, so tasks get browser tests with screenshots").
+
+I will confirm or correct in one reply. Do not write the config until Task sessions (SESSION_PER_TASK) and How work is run are answered explicitly (accepting your recommendation, e.g. "추천대로", counts as an answer). Then write `.harness/config`.
+
+Write it from `templates/config.template` in this skill's folder (an example profile: replace every value with the confirmed one).
+
+| | FULL | HACKATHON |
+|---|---|---|
+| Required questions in the list (default; the rest are `optional`; grill mode has no limit) | 10 (15 if REQ_SOURCES=INTERVIEW) | 5 (8 if INTERVIEW) |
+
+## Step 1: Read the sources
+Read every file in REQ_SOURCES and DATA_SOURCES. For data, load it and compute the numbers with a script (row counts, keys, relations, quality issues with counts). Do not guess, and do not paste large files into the conversation.
+GREENFIELD=0: read enough of the code to know what exists and how it runs, so you never ask what the code answers. The full analysis of the existing system belongs to hm-setup (planning); do not write it down here.
+Write no separate analysis document. What later steps need goes into REQUIRE.md.
+
+## Step 2: Write the REQUIRE.md draft
+Write docs/REQUIRE.md now, before asking anything: copy `templates/REQUIRE.template.md` from this skill's folder and fill it. It is the only document of this step: the questions live in its §11, and each answer is applied in place. Keep it short:
+- Never restate the sources. An R-xx names what it is and where it comes from (`Source: README.md §3`); its acceptance criteria carry the detail.
+- Acceptance criteria now for Must only. Should and Could get `- Acceptance criteria: when tasked`; hm-setup or hm-change writes them when a task takes the R-xx.
+- Proposed defaults instead of questions: what the sources or the data answer with near certainty is not a question. That covers an evident data fix (a value entered in the wrong unit, a duplicate settled by its newest record, a missing mirror row of a symmetric pair) and a rule the sources state elsewhere. Apply it in the draft and add it to §7 Assumptions with its evidence, Status `proposed`; I confirm them all at once (Step 3).
+- Questions are only for what is genuinely unknown: a value or rule nobody wrote down, a choice between plausible readings, a conflict between sources. Wherever one leaves a value or a rule open, put the marker `[Q-<k>]` there (in the AC, rule, NFR or treatment) and add the question to §11 as a block in the format of references/interview.md (read it before writing §11). Never guess the value.
+- A section that does not apply: its heading and `N/A (<reason>)` on one line.
+- Glossary: only terms that are ambiguous, used with two meanings, or have synonyms in the sources.
+- Coverage: every statement in REQ_SOURCES maps to an R-xx, a DR-xx, an NFR or an Out of scope row. Check it; do not write a mapping table.
+- If REQ_SOURCES=INTERVIEW, the draft holds only what is known so far; the interview fills it.
+- Replace every note in parentheses in the template with content.
+
+Rules:
+- AC IDs are written in full (R-01/AC-1) everywhere they appear. Numbering restarts per R-xx, so the AC number alone is ambiguous.
+- IDs are never renumbered or reused later; hm-change appends new ones.
+- Every AC is observable through the product's outer interface (screen, HTTP, CLI, public API, emitted event) or a unit test. Use concrete values.
+- Every NFR has a number. Mark unconfirmed numbers [ASSUMPTION].
+- For latency or throughput NFRs, say what is measured: under concurrent load (a service), or a single call (command, function, batch job).
+- Use only the §9 Glossary terms in requirements, ACs and rules; never a word listed under "Not to be called".
+- §10 states what must hold, not which algorithm or tool (that is SPEC §12). Each SEC-xx is verifiable. Write the baseline rows that apply yourself, without asking, marked [ASSUMPTION]; they appear in the summary check, where I can correct them:
+  - Passwords are stored: "A leaked database does not reveal any user's password, and identical passwords do not produce identical stored values" (resists rainbow tables and offline guessing).
+  - Users sign in: "Repeated failed sign-ins are slowed or blocked; error messages do not reveal whether an account exists."
+  - Users own data: "A user can never read or change another user's data unless a rule says so" (one row per rule).
+  - Any secret or credential: "No secret is stored in the repository, logs or error messages."
+  - Sensitive data: what may be logged, shown, exported, and how long it is kept.
+  - Any network-facing component: "Untrusted input cannot run commands, queries or scripts" and "Dependencies have no known High or Critical vulnerability at release."
+
+## Step 3: Interview
+The goal is a shared understanding, not a filled form. Keep asking until we would describe the product, its rules and its words the same way.
+
+Question format (every question in this skill, including Step 0 items 2 and 3):
+
+~~~
+❓ **Q-08 — Missing transfer time**: May a **common default transfer time** apply between same-name stations, and if so, how many seconds? `Yesol` and `Geumbit` share a name, but the data gives no walking time between them.
+
+➡️ Allow transfers between same-name stations and apply a common default time confirmed by the owner: the sources treat them as one station everywhere else.
+~~~
+
+- First line: ❓, then the ID and a short topic in bold, a colon, then the question and its context in one to three sentences in CHAT_LANG. Bold the phrase the decision hinges on.
+- Question first: the sentence ending in `?` comes right after the colon; the reason, evidence, counts and examples follow it, never before it. Bad: "5 pairs of segments have two records ... Should we use only the newest?" Good: "Should we use only the newest record? For example, `S201→S202` has 266 s from 2025 and 176 s from 2026."
+- Names, values, file paths and IDs from the project go in code spans.
+- If there are options, list them between the question and the recommendation, one line each: `A) ...`, `B) ...`. Each option says in plain words what will happen and what I gain or give up; config keys or technical names only in parentheses after that.
+- Blank line, then ➡️ and your recommended answer with one line on why. Every question has one. If you cannot recommend, say what you would need to know, and recommend the safest choice meanwhile.
+- Use only Markdown bold and code spans for emphasis (clients render them in accent colors); no HTML, no color codes.
+- Questions always come last in the message. Findings, explanations, tables and summaries go first; nothing follows the last ➡️ line.
+
+Procedure: read references/interview.md in this skill's folder and follow it: the §11 question-list format, the two ways I can answer (in the file or in chat, in rounds), what to ask and in which order, how to challenge vague or contradicting answers, how to pin terms, how to record answers in batches, when to stop, and the summary check that ends the interview.
+
+## Finish
+Report in CHAT_LANG:
+- Final profile (config values) and the components seen
+- R-xx count by priority, NFR list, SEC-xx list, Glossary term count
+- Assumptions I should confirm
+- Later requirement changes: hm-change (e.g. "요구사항 추가해: ..." / "add a requirement: ..."), no need to rerun this step
+
+Then stop.
