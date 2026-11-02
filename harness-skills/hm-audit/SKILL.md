@@ -6,22 +6,10 @@ description: Step 6-2 of the harness flow. Use for "누락 검토해" (or "누�
 # Harness Step 6-2: Traceability audit
 
 Talk to me in CHAT_LANG and write documents in DOC_LANG (both in .harness/config; Korean and English if unset). Code, identifiers and the fixed tokens scripts parse stay in English. Ask questions in the question format of AGENTS.md ("Ask the user when"): ❓ question with a bold topic, then ➡️ your recommendation.
-Other skills: use another skill only when my message names it or a step of this skill names it. An installed skill whose description seems to fit the work (a design system, charts, documents) stays unused, unless SPEC or DECISIONS records that I chose it.
-Files I name: a file named in my message is the first source for the role I give it, and harness files only fill what it lacks. If they disagree, show the difference and ask which one wins. If it is missing or does not fit that role, say so in one line and go on without it. Read it; edit it only if I ask.
 
 ## Inputs
-Find each input in this order, and name in TRACEABILITY.md the file that served (e.g. `Requirements: docs/prd.md (stand-in for REQUIRE.md)`): a file I name ("누락 검토해: <file>") → the harness file → a file in the repository that plays the same role (ask once if several fit) → the fallback.
-Without the harness (no .harness/config): follow references/no-harness.md in this skill's folder (what not to create, the defaults for languages, branch, commands and scratch files, and the question format). With the harness, AGENTS.md covers this and you read it first.
-
-| Input | Harness file | Stand-ins to look for | Fallback |
-|---|---|---|---|
-| Requirements | docs/REQUIRE.md (R-xx, AC, DR, NFR, SEC) | a PRD, a spec, the README's feature list | none: stop and ask me which document holds the requirements |
-| Tasks | docs/tasks/ | — | none: leave the Task column out |
-| Design (contracts, seams, compatibility) | docs/SPEC.md, REQUIRE §5 | design docs, API descriptions | skip steps 4–5 and say so |
-| test, e2e, check | `bash scripts/hm.sh test / e2e / check` | the repository's commands | none: say which did not run; coverage then rests on reading the tests |
-| Task states | `bash scripts/harness-state.sh status` | — | the task files and the task/<id> branches |
-
-With a stand-in for REQUIRE.md, number its statements yourself (`S-1`, `S-2`, ... in document order, quoting each in a few words) and use those IDs in steps 2–3; steps 2 and 3 become one pass over the document. Without the tag harness-init, step 6 does not apply and steps 7–8 look at the last 100 commits instead.
+With the harness: AGENTS.md first, then docs/REQUIRE.md (R-xx, AC, DR, NFR, SEC), docs/tasks/, docs/SPEC.md and REQUIRE §5 for contracts, seams and compatibility, `bash scripts/hm.sh test / e2e / check`, `bash scripts/harness-state.sh status`.
+Without the harness (no .harness/config): read references/no-harness.md and references/inputs.md in this skill's folder first; the latter says what stands in for each of those and how the steps change.
 
 ## Preconditions
 - Audit what is merged: run in the main worktree on INTEGRATION (MERGE=pr: a temporary detached worktree at `<REMOTE>/<INTEGRATION>` after `git fetch`). Tasks not merged yet count as not implemented; list them as in flight.

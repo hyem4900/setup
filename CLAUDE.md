@@ -7,14 +7,14 @@
 
 | 파일 | 내용 |
 |---|---|
-| `FLOW.md` | 전체 흐름 설명. 사람이 읽는 기준 문서 |
+| `FLOW.md` | 전체 흐름 설명. 사람이 읽는 기준 문서. "왜 이 하네스인가"(대상·문제·목표·비목표)와 "비용과 시간"(추정치와 측정법)도 여기 |
 | `CHANGELOG.md` | 버전 사이에 바뀐 것 (v3 → v4 비교표) |
 | `harness-skills/hm-*/SKILL.md` | 단계별 스킬 9개. hm-dev는 개발·리뷰 반영·병합을 함께 맡음 |
-| `harness-skills/hm-*/references/`, `hm-req/templates/` | 일부 경우에만 읽는 내용: hm-dev의 `tdd.md`(테스트 먼저 루프)·`debug.md`(디버그 절차)·`review-and-merge.md`(리뷰 반영·병합), hm-setup의 `setup.md`(셋업, Part B)·`no-require.md`(REQUIRE 없이 시작), hm-auto의 `stop-reasons.md`(멈춤 사유 표), hm-req의 `interview.md`(§11 질문 양식과 인터뷰 절차)와 REQUIRE 양식·config 양식 (hm-setup도 읽음) |
-| `harness-skills/_shared/`, `harness-skills/sync-shared.sh` | 여러 스킬이 같이 쓰는 문단의 원본: `question-format.md`(질문 양식), `no-harness.md`(하네스 없이 돌 때의 규칙·기본값). `sync-shared.sh`가 각 스킬의 `references/`로 복사함. **복사본을 직접 고치지 말고** 원본을 고친 뒤 sync. 스킬 본문에 남긴 "Other skills"·"Files I name" 두 단락은 짧고 중요해서 일부러 각 스킬에 그대로 둠 |
+| `harness-skills/hm-*/references/`, `hm-req/templates/` | 일부 경우에만 읽는 내용: hm-dev의 `tdd.md`(테스트 먼저 루프)·`debug.md`(디버그 절차)·`review-and-merge.md`(리뷰 반영·병합)·`develop-without-harness.md`(하네스 없이 개발할 때의 입력과 시작 절차), hm-review·hm-audit·hm-load-test·hm-security·hm-change의 `inputs.md`(하네스 없이 돌 때의 입력 대체 표), hm-setup의 `setup.md`(셋업, Part B)·`no-require.md`(REQUIRE 없이 시작), hm-auto의 `stop-reasons.md`(멈춤 사유 표), hm-req의 `interview.md`(§11 질문 양식과 인터뷰 절차)와 REQUIRE 양식·config 양식 (hm-setup도 읽음) |
+| `harness-skills/_shared/`, `harness-skills/sync-shared.sh` | 여러 스킬이 같이 쓰는 문단의 원본: `question-format.md`(질문 양식), `no-harness.md`(하네스 없이 돌 때의 규칙·기본값). `sync-shared.sh`가 각 스킬의 `references/`로 복사함. **복사본을 직접 고치지 말고** 원본을 고친 뒤 sync. "Other skills"·"Files I name" 두 단락은 하네스가 있으면 AGENTS.md가, 없으면 `no-harness.md`가 주므로 스킬 본문에서는 빼는 중 (hm-req·hm-setup은 AGENTS.md가 생기기 전에 돌고, hm-auto는 AGENTS.md를 읽지 않는 오케스트레이터라 본문에 둠. 나머지 6개는 뺐음) |
 | `harness-skills/hm-setup/templates/` | hm-setup이 프로젝트로 복사하는 템플릿 (SPEC, AGENTS, REVIEW, STANDARDS, task 파일, config 명령 섹션, 가드레일 예시). 형식을 바꾸면 스킬 본문과 함께 고침 |
 | `harness-skills/hm-setup/scripts/install.sh` | 셋업 때 고정 파일(스크립트, 템플릿, hook, gitignore·gitattributes 줄, config 명령 섹션)을 한 번에 넣는 설치 스크립트. 있는 파일은 덮어쓰지 않음 |
-| `harness-skills/hm-setup/scripts/harness-state.sh` | task 파일·브랜치·리뷰 파일로 "다음에 뭘 할지"를 판단하는 스크립트 (자동 실행, worktree 경로·포트 배정) |
+| `harness-skills/hm-setup/scripts/harness-state.sh` | task 파일·브랜치·리뷰 파일로 "다음에 뭘 할지"를 판단하는 스크립트 (자동 실행, worktree 경로·포트 배정, `report`로 실행 비용 집계) |
 | `harness-skills/hm-setup/scripts/test-harness-state.sh`, `test-hm.sh` | `harness-state.sh` / `hm.sh`·`install.sh`를 임시 저장소에서 검증하는 테스트. 이 저장소 전용이며 프로젝트로 복사되지 않음. 고친 스크립트의 테스트를 돌림 (Windows에서 각각 몇 분 걸림, GitHub Actions가 push마다 ubuntu·macOS에서도 돌림) |
 | `harness-skills/hm-setup/scripts/hm.sh` | 프로젝트의 하네스 명령 (setup, test, e2e, security, check, selftest, dev-bg 등). 명령 내용은 `.harness/config`에서 읽음. 컴포넌트 기동·health check·종료 포함 |
 | `setup.md` | 하네스와 별개인 예전 개인 설정 메모 |

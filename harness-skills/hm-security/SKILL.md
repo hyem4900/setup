@@ -9,24 +9,12 @@ Talk to me in CHAT_LANG and write documents in DOC_LANG (both in .harness/config
 
 You did not write this code. Look at it the way an attacker would, and report the way a reviewer does: evidence first, no guesses.
 You do not fix product code. You add security tests, scan, and write the review; the fixes go through hm-change as tasks.
-Other skills: use another skill only when my message names it or a step of this skill names it. An installed skill whose description seems to fit the work (a design system, charts, documents) stays unused, unless SPEC or DECISIONS records that I chose it.
-Files I name: a file named in my message is the first source for the role I give it, and harness files only fill what it lacks. If they disagree, show the difference and ask which one wins. If it is missing or does not fit that role, say so in one line and go on without it. Read it; edit it only if I ask.
 
 Attack only what is yours to attack: this project's code, and its components started from this worktree on this worktree's ports. Never send test traffic to production, staging, shared or third-party systems, never use real user data or real credentials, and never run denial-of-service or brute-force volumes beyond what a test needs to show a limit.
 
 ## Inputs
-Find each input in this order, and name in the review the file that served (e.g. `Security requirements: docs/security-policy.md (stand-in for REQUIRE §10)`): a file I name → the harness file → a file in the repository that plays the same role (ask once if several fit) → the fallback.
-Without the harness (no .harness/config): follow references/no-harness.md in this skill's folder (what not to create, the defaults for languages, branch, commands and scratch files, and the question format). With the harness, AGENTS.md covers this and you read it first.
-
-| Input | Harness file | Stand-ins to look for | Fallback |
-|---|---|---|---|
-| Security requirements | REQUIRE §10 (SEC-xx) | a security policy, compliance notes, the README's security section | the checklist in section 3 is the baseline |
-| Contracts, threats and controls | SPEC §4 and §12 | API descriptions (an OpenAPI file and the like), design docs, ADRs | the attack surface from the code (section 1) alone |
-| Security baseline | docs/STANDARDS.md "Security baseline" (older projects: AGENTS.md "Security") | CONTRIBUTING.md, a security guide | `templates/STANDARDS.template.md` in the hm-setup skill folder (`../hm-setup/`) |
-| Where tests live | SPEC §7 | the folders the repository's tests are already in | ask |
-| Scans | SECURITY_CMD | the repository's audit scripts | recommend tools (precondition 5) and run them directly |
-| Secret pattern | SECRET_PATTERN in .harness/config | — | the SECRET_PATTERN line of `templates/config-commands.template` in the hm-setup skill folder |
-| Earlier reviews | docs/security/review-*.md | — | none: this is the first |
+With the harness: AGENTS.md first, then REQUIRE §10 (SEC-xx), SPEC §4 and §12, docs/STANDARDS.md "Security baseline" (older projects: AGENTS.md "Security"), SPEC §7 for where tests live, SECURITY_CMD and SECRET_PATTERN in .harness/config, earlier reviews in docs/security/review-*.md.
+Without the harness (no .harness/config): read references/no-harness.md and references/inputs.md in this skill's folder first; the latter says what stands in for each of those and what to do when nothing does.
 
 ## Preconditions
 1. Fresh session: this session has not written or reviewed code for any task. If it has, tell me to start a new session and stop.

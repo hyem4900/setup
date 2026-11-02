@@ -51,7 +51,7 @@ done
 if [ ! -e AGENTS.md ]; then
   cp "$T/AGENTS.template.md" AGENTS.md
   say copied AGENTS.md
-elif grep -q '^## Task workflow' AGENTS.md; then
+elif grep -q '^Project profile: see .harness/config' AGENTS.md; then
   say kept "AGENTS.md (harness section already there)"
 else
   ends_with_newline AGENTS.md || printf '\n' >> AGENTS.md

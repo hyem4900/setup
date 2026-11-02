@@ -7,21 +7,10 @@ description: Turns a new or changed requirement after setup (without the harness
 
 Talk to me in CHAT_LANG and write documents in DOC_LANG (both in .harness/config; Korean and English if unset). Code, identifiers and the fixed tokens scripts parse stay in English.
 Never modify paths in PROTECTED. Do not write product code: this skill changes docs and task files only.
-Other skills: use another skill only when my message names it or a step of this skill names it. An installed skill whose description seems to fit the work (a design system, charts, documents) stays unused, unless SPEC or DECISIONS records that I chose it.
-Files I name: a file named in my message is the first source for the role I give it, and harness files only fill what it lacks. If they disagree, show the difference and ask which one wins. If it is missing or does not fit that role, say so in one line and go on without it. Read it; edit it only if I ask.
 
 ## Inputs
-Find each input in this order, and name in the CR file the file that served (e.g. `Requirements: docs/prd.md (stand-in for REQUIRE.md)`): a file I name → the harness file → a file in the repository that plays the same role (ask once if several fit) → the fallback.
-Without the harness (no .harness/config): follow references/no-harness.md in this skill's folder (what not to create, the defaults for languages, branch, commands and scratch files, and the question format). With the harness, AGENTS.md covers this and you read it first.
-
-| Input | Harness file | Stand-ins to look for | Fallback |
-|---|---|---|---|
-| Requirements | docs/REQUIRE.md | a PRD, a spec, the README's feature list, issues | none: the request itself |
-| Design and contracts | docs/SPEC.md, docs/DECISIONS.md | design docs, API descriptions, ADRs | the code |
-| Task template | docs/tasks/_template.md | — | `templates/task.template.md` in the hm-setup skill folder (`../hm-setup/` from this skill's folder); read it there |
-| Task states | `bash scripts/harness-state.sh status` | — | the task files in docs/tasks/ and the task/<id> branches |
-
-Without the harness, this skill writes only the CR file and task files: it reads the stand-ins for the impact analysis but never edits them, skips the REQUIRE, SPEC and DECISIONS updates in step 4, and lists in the CR's Impact table what those docs would need. Tasks it writes start with "개발해: docs/tasks/<id>.md" or "Start Task <id>." (hm-dev).
+With the harness: docs/REQUIRE.md, docs/SPEC.md and docs/DECISIONS.md, the task template docs/tasks/_template.md, `bash scripts/harness-state.sh status`.
+Without the harness (no .harness/config): read references/no-harness.md and references/inputs.md in this skill's folder first; the latter says what stands in for each of those and what this skill then writes and leaves alone.
 
 ## Preconditions
 - Read .harness/config, AGENTS.md, the requirements, the design sections the request touches, the task template and the task states (Inputs).

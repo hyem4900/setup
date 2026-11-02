@@ -16,7 +16,7 @@ This skill's folder holds what you copy into the project: `templates/` (SPEC, AG
 ## Where to start
 - docs/REQUIRE.md has an open `[Q-xx]` marker: the hm-req interview was cut off. Stop and tell me to finish it with hm-req.
 - docs/REQUIRE.md or .harness/config is missing: read references/no-require.md in this skill's folder and follow it first (from a file I name, a requirements file in the repository, or our conversation); it ends where Part A begins. With REQUIRE.md present and only the config missing, do its profile steps only (R2, then R4 without Q-xx).
-- The tag harness-init exists, or AGENTS.md has the harness section (`## Task workflow`): this is a refresh. Go to "Refresh".
+- The tag harness-init exists, or AGENTS.md has the harness section (the line `Project profile: see .harness/config`): this is a refresh. Go to "Refresh".
 - docs/tasks/ (or docs/changes/) exists without either: tasks were written without the harness (hm-dev "개발해", hm-change). Set up normally (Part A, then Part B) and adopt them in B2.
 - docs/SPEC.md and docs/DECISIONS.md exist but no tasks: ask whether to keep the plan (go to Part B) or redo it (Part A; keep D-xx numbers and append).
 - Otherwise: Part A, then Part B.

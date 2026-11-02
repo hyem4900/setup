@@ -238,7 +238,7 @@ OUT=$("$BASH" "$INSTALL" 2>&1 | tr -s ' '); RC=$?
 rc_is "install runs" 0
 has "install writes the fixed files" "copied scripts/hm.sh" "copied scripts/harness-state.sh" "appended AGENTS.md (# Harness section)" \
   "wrote CLAUDE.md" "copied docs/REVIEW.md" "copied docs/STANDARDS.md" "copied docs/tasks/_template.md" "wrote .githooks/pre-commit" "install: ok"
-OUT=$(cat AGENTS.md); has "existing AGENTS.md kept and extended" "keep me" "# Harness" "## Task workflow"
+OUT=$(cat AGENTS.md); has "existing AGENTS.md kept and extended" "keep me" "# Harness" "## Ask the user when"
 OUT=$(cat CLAUDE.md); has "agent entry file points to AGENTS.md" "@AGENTS.md"
 OUT=$(cat .harness/config); has "commands section appended" "# Commands (hm-setup" "TYPECHECK_CMD=" "MODE=FULL"
 same "hooks path set" "$(git config core.hooksPath)" ".githooks"

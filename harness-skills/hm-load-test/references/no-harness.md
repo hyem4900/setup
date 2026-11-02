@@ -14,3 +14,7 @@ Create none of `.harness/config`, AGENTS.md, `scripts/` or git hooks: they belon
 - Scratch files (reviews, debug files, load results, PR bodies): `artifacts/` if git ignores it (`git check-ignore -q artifacts/x`), else the OS temp directory; print the path.
 - Questions: the format in `references/question-format.md`, last in the message.
 - Name in the output which file served for each input (e.g. `Spec source: README.md (stand-in for REQUIRE.md)`).
+
+## Rules AGENTS.md would otherwise give
+- Other skills: use another skill only when my message names it or a step of this skill names it. An installed skill whose description seems to fit the work (a design system, charts, documents) stays unused, unless a design document in the repository records that I chose it.
+- Files I name: a file named in my message is the first source for the role I give it, and the repository's documents only fill what it lacks. If they disagree, show the difference and ask which one wins. If it is missing or does not fit that role, say so in one line and go on without it. Read it; edit it only if I ask.

@@ -1,6 +1,6 @@
 # Harness: Debug (part of hm-dev)
 
-Follow AGENTS.md (languages, question format, forbidden actions), or without the harness the defaults in hm-dev's "Inputs" (the repository's own commands in place of `bash scripts/hm.sh <name>`, scratch files in the OS temp directory unless git ignores artifacts/). This procedure replaces guessing with a loop; it adds no new state. Use it for a bug whose cause is not obvious, after 3 failed fix attempts on the same test, or when I ask you to debug, find a cause, or find why something is slow.
+Follow AGENTS.md (languages, question format, forbidden actions), or without the harness the defaults in references/no-harness.md and the Inputs in references/develop-without-harness.md (the repository's own commands in place of `bash scripts/hm.sh <name>`, scratch files in the OS temp directory unless git ignores artifacts/). This procedure replaces guessing with a loop; it adds no new state. Use it for a bug whose cause is not obvious, after 3 failed fix attempts on the same test, or when I ask you to debug, find a cause, or find why something is slow.
 
 ## Where the fix goes
 - Inside a task (Develop): work on that task's branch and worktree; the fix is part of the task.

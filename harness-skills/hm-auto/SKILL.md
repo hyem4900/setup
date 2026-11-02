@@ -101,8 +101,8 @@ Wait for running sub-agents to finish and `check` them first (or, if I insist on
 - Why it stopped (translate the `reason`) and what I should do (references/stop-reasons.md in this skill's folder)
 - Demos I have not answered yet: the next run goes on with those tasks' review or merge, so try them before resuming
 - The status table
-- The last log paths
+- The last log paths, and the `report` output so far (where the time went, cost drivers)
 - How to resume: ask to run automatically again and it continues from the current state (state lives in the files and branches, so nothing is lost)
 
 ## Finish
-Run `run-end`, then `status`. Report in CHAT_LANG: tasks finished (merged, or pushed and waiting) in this run, review results (files), tasks skipped because someone else owns them (`note=`), the log folder (`artifacts/runs/<run>/`) with the time per step kind from its `summary.tsv` (dev, review, apply, merge: total minutes each, and the slowest step), and the next manual steps that apply ("요구사항 추가해: ...", "부하 테스트 해", "보안 점검해", "누락 검토해").
+Run `run-end`, then `status`, then `report`. Report in CHAT_LANG: tasks finished (merged, or pushed and waiting) in this run, review results (files), tasks skipped because someone else owns them (`note=`), the log folder (`artifacts/runs/<run>/`), the `report` output as it is (steps and minutes per step kind and per task, the slowest step, the cost drivers: every step is one sub-agent, so the step count is the run's size), one line on what would make the next run cheaper or faster when the report shows it (a task with continues is too big: "Task N 나눠줘"; questions: the decision belongs in REQUIRE or the task file before the next task starts; dev steps waited on each other: raise PARALLEL only if the review and merge steps are not the slowest), and the next manual steps that apply ("요구사항 추가해: ...", "부하 테스트 해", "보안 점검해", "누락 검토해").

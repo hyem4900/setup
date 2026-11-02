@@ -5,7 +5,7 @@ description: Steps 4 and 5-2 of the harness flow: the development session. Use f
 
 # Harness Steps 4 and 5-2: Develop, apply review, integrate
 
-Follow AGENTS.md (it sets the languages: CHAT_LANG for talking to me, DOC_LANG for documents; code, identifiers and the fixed tokens scripts parse stay in English; questions use its ❓/➡️ format). Do only the part my message asks for:
+Follow AGENTS.md. Do only the part my message asks for:
 
 | My message | Part |
 |---|---|
@@ -15,74 +15,81 @@ Follow AGENTS.md (it sets the languages: CHAT_LANG for talking to me, DOC_LANG f
 | "Task <id> 되돌려" / "Revert Task <id>." | the same file, "Undoing a merged task" |
 | "디버깅해: ...", "원인 찾아줘: ...", "왜 느린지 찾아줘", or a Develop rule sends you there | Read references/debug.md in this skill's folder and follow it |
 
-Other skills: use another skill only when my message names it or a step of this skill names it. An installed skill whose description seems to fit the work (a design system, charts, documents) stays unused, unless SPEC or DECISIONS records that I chose it.
-Files I name: a file named in my message is the first source for the role I give it, and harness files only fill what it lacks. If they disagree, show the difference and ask which one wins. If it is missing or does not fit that role, say so in one line and go on without it. Read it; edit it only if I ask.
-
-## Inputs
-Find each input in this order, and name in your report the file that served (e.g. `Review source: PR comments (stand-in for a review file)`): a file I name → the harness file → a file in the repository that plays the same role (ask once if several fit) → the fallback.
-Without the harness (no .harness/config), every part still works; Develop starts from a request or a task file ("Preconditions (without the harness)"). Follow references/no-harness.md in this skill's folder for what not to create and the session defaults (languages, INTEGRATION, WORKTREES=0, MERGE=local, the repository's own commands, scratch files, the question format).
-
-| Input | Harness file | Stand-ins to look for | Fallback |
-|---|---|---|---|
-| Rules, languages, question format | AGENTS.md | CONTRIBUTING.md, an agent instruction file (CLAUDE.md and the like) | the defaults above |
-| Task workflow, report format, Definition of Done | AGENTS.md | — | those three sections of `templates/AGENTS.template.md` in the hm-setup skill folder (`../hm-setup/` from this skill's folder); read them there, never copy the file |
-| Task | docs/tasks/<id>.md | an issue or spec file I name, my message | a new task file (Preconditions (without the harness)) |
-| Requirements and test seams | REQUIRE.md, SPEC §7 | a requirements or design doc; the folders the repository's tests are in | the task file's own acceptance criteria |
-| Review to apply | a file under artifacts/review/ | pasted text, pull request comments, another tool's report | none: ask me for the review |
-| Standards for fixes | docs/STANDARDS.md | CONTRIBUTING.md, CODING_STANDARDS.md, the lint configuration | none |
-| test, e2e, check | `bash scripts/hm.sh test / e2e / check` | the repository's commands | none: say which checks did not run |
-| Formatting before a commit | the pre-commit hook (`bash scripts/hm.sh fmt`) | the repository's format command or hook | none: match the surrounding style |
-| Scratch files (reviews, debug, PR bodies) | artifacts/ | — | the OS temp directory, unless git ignores artifacts/ (`git check-ignore -q artifacts/x`) |
+Without the harness (no .harness/config): read references/no-harness.md and references/develop-without-harness.md in this skill's folder first. They hold the session defaults, what stands in for each harness file, and how "개발해: ..." starts; everything below still applies.
 
 # Develop
 
 ## Preconditions (Start Task <id>.)
-1. No .harness/config: use "Preconditions (without the harness)" below. Otherwise AGENTS.md and docs/tasks/<id>.md exist on INTEGRATION; if not, stop and tell me to run hm-setup (or hm-change for a new task).
+1. `bash scripts/harness-state.sh start-check <id>`. `result=stop`: tell me the reason in CHAT_LANG and stop (it checks the task file and its status, a branch someone else may own, unmerged dependencies, PARALLEL and a dirty worktree). `result=ok` gives `dir`, `offset`, `base`, `branch_exists`; a worktree and PORT_OFFSET named in my message (or hm-auto's prompt) win over them. A request with no task file goes through hm-change first: tell me ("요구사항 추가해: ..." / "버그 등록해: ...") and stop.
 2. Read files in the order in AGENTS.md.
-3. Run `bash scripts/harness-state.sh worktree <id>`. It prints `dir`, `offset`, `base`, `status`, `where`, `blocked_by`. If my message (or hm-auto's prompt) already gives a worktree and PORT_OFFSET, use those.
-4. The task is Todo. `where` is not `remote`: a task/<id> branch that exists only on REMOTE belongs to someone else. If a local task/<id> branch exists with commits beyond `base`, ask me (an earlier session may own it). A branch with no commits beyond `base` (an earlier start that stopped before its first commit) may be reused.
-5. `blocked_by` is empty: every task in Depends on is merged into INTEGRATION.
-6. Fewer than PARALLEL tasks are In Progress (`bash scripts/harness-state.sh status`). If not, ask me.
-7. Session rule from SESSION_PER_TASK in .harness/config:
-   - 1: this session has not worked on another task or run harness steps 1–3. If it has, tell me to start a new session and stop.
-   - 0: an earlier task in this session is fine, as long as its demo report was sent. Re-read the files in the AGENTS.md order anyway; trust the docs and `git log`, not what you remember from the earlier task.
-   - Missing: ask me 1 or 0, write it to .harness/config, then continue.
-8. Create the place to work:
-   - WORKTREES=1: `git worktree add -b task/<id> <dir> <base>` (or `git worktree add <dir> task/<id>` to reuse an empty branch), write `PORT_OFFSET=<offset>` to `<dir>/.harness/local`, run `bash scripts/hm.sh setup` in `<dir>`. From here on, run every command inside `<dir>`.
-   - WORKTREES=0: the main worktree is clean; `git switch -c task/<id> <base>` (or `git switch task/<id>`).
-   - MERGE=pr: `git fetch <REMOTE>` first, so `base` is the team's latest INTEGRATION.
-9. `bash scripts/hm.sh check` passes.
+3. SESSION_PER_TASK (.harness/config). 1: this session has not worked on another task or run harness steps 1–3; if it has, tell me to start a new session and stop. 0: an earlier task in this session is fine once its demo report was sent; re-read the files anyway and trust the docs and `git log`, not what you remember. Missing: ask me 1 or 0, write it to .harness/config, then continue.
+4. Create the place to work:
+   - WORKTREES=1: `git worktree add -b task/<id> <dir> <base>` (`branch_exists=yes`: `git worktree add <dir> task/<id>`), write `PORT_OFFSET=<offset>` to `<dir>/.harness/local`, run `bash scripts/hm.sh setup` in `<dir>`. From here on, run every command inside `<dir>`.
+   - WORKTREES=0: `git switch -c task/<id> <base>` (`branch_exists=yes`: `git switch task/<id>`).
+5. `bash scripts/hm.sh check` passes.
 
-If any check fails, tell me which one in CHAT_LANG and stop.
-
-## Preconditions (without the harness)
-For "개발해: <request or file>", or "Start Task <id>." when there is no .harness/config. With the harness, a request that has no task file goes through hm-change first: tell me ("요구사항 추가해: ..." / "버그 등록해: ...") and stop.
-1. The task: docs/tasks/<id>.md if it exists (written earlier, e.g. by hm-change without the harness), else a new one. For a new one, read `templates/task.template.md` in the hm-setup skill folder and write docs/tasks/<id>.md from it: the next free number in docs/tasks/ (from 1), `- Status: In Progress`, `- Type:` from the request, `- Review: each`, `- Depends on: none`, `- Requirements: none` (or the IDs of a requirements doc I named), `- Source:` my message or the file. Acceptance criteria as Given/When/Then with concrete values, with IDs `T<id>/AC-<n>` (feature and bug), or "Done when" bullets; a demo scenario for feature and bug.
-2. If the request leaves a value or a behavior open, ask in one round before writing the criteria, and never guess. Show me the criteria in a few lines and go on unless I correct them.
-3. The tree is clean. Base: INTEGRATION (Inputs); if the current branch is another one with commits not on INTEGRATION, ask which base.
-4. `git switch -c task/<id> <base>` (or `git switch task/<id>` for an existing empty branch), then commit the task file: `chore(task-<id>): start`.
-Steps that need the harness do not apply: harness-state.sh, PARALLEL, SESSION_PER_TASK, worktrees, the Review policy.
+If a step fails, tell me which one in CHAT_LANG and stop.
 
 ## Preconditions (Continue Task <id>.)
 Use when a session ended mid-task.
-1. task/<id> exists and its task file says In Progress. Work in its worktree (`harness-state.sh worktree <id>`), or with WORKTREES=0 (and without the harness) switch the main worktree to task/<id> if it is not there already (uncommitted changes of this same task may be present: keep them).
-2. Read the task file's Notes for Next Session and Log, `git diff <base>...HEAD`, and uncommitted changes.
+1. task/<id> exists and its task file says In Progress. Work in its worktree (`bash scripts/harness-state.sh worktree <id>`), or with WORKTREES=0 (and without the harness) switch the main worktree to task/<id> if it is not there already; uncommitted changes of this same task may be present: keep them.
+2. Read the task file's Notes for Next Session and Log, `git diff <base>...HEAD`, and the uncommitted changes.
 3. Tell me in two lines what is done and what is left, then continue from the first unfinished workflow step.
 
 ## Workflow
-Run the Task workflow in AGENTS.md in order (without the harness: the one Inputs points to; its step 1 is already done). Additional rules:
+Run the Task workflow (end of this file) in order. Additional rules:
 - Commit only on task/<id>, only inside its worktree.
-- feature and bug tasks (a missing `- Type:` means feature): read references/tdd.md before the first test. A bug whose cause is not obvious: references/debug.md.
+- feature and bug tasks (a missing `- Type:` means feature): read references/tdd.md before the first test. A bug whose cause is not obvious, or the same test still failing after 3 fix attempts: references/debug.md (that test is its loop); ask only when it says to.
 - If the work turns out to be a different type than the task says (a "chore" that must change behavior, a "bug" that is really a missing feature), stop and ask; the fix goes through hm-change.
 - Name each test after its full AC ID: `R-01/AC-1` → `test_r01_ac1_...` (snake case), `r01-ac1: ...` (description strings), or the stack's naming style with the same parts. AC numbers restart per R-xx, so never use the AC number alone. A task's own criteria `T3/AC-1` → `test_t3_ac1_...`.
 - (HAS_UI=1) Each E2E test saves one full-page screenshot per demo step to artifacts/e2e/screenshots/task-<id>/<step>.png.
-- When a test fails, read the error, form one hypothesis, fix, re-run. After 3 failed attempts on the same test, switch to references/debug.md (that test is its loop); ask only when it says to.
-- Keep the change inside the task's scope. If you notice a bug outside it, add it to the task file's Issues found instead of fixing it.
-- Questions follow AGENTS.md "Ask the user when". When I answer one, record it in the task file's Decisions during development as `DQ-<n>` (behavior or approach, the R-xx, the question, the answer, the resulting behavior with concrete values), add a test named after it that fixes that behavior, and add a Log entry. Do not edit REQUIRE.md or DECISIONS.md yourself: Integrate moves the DQs there (without the harness they stay in the task file).
-- If your context is getting long before the task is done: commit work in progress as `wip(task-<id>): <state>`, update Notes for Next Session with exact next steps, and tell me to run "Continue Task <id>." in a new session. Only that case makes a wip commit; a question leaves the work uncommitted (AGENTS.md), and "Continue Task <id>." picks it up.
-- Before reporting, update Notes for Next Session: what the next session of this task (and its reviewer) must know, any workaround in place, any flaky test.
+- Keep the change inside the task's scope. A bug outside it goes to the task file's Issues found, not into the diff.
+- My answer to a question (AGENTS.md "Ask the user when") becomes `DQ-<n>` under the task file's Decisions during development: behavior or approach, the R-xx, the question, the answer, the resulting behavior with concrete values; plus a Log entry and a test named after it (`test_task3_dq2_...` / `task3-dq2: ...`) that fixes that behavior. Do not edit REQUIRE.md or DECISIONS.md yourself: Integrate moves the DQs there.
+- Context getting long before the task is done: commit `wip(task-<id>): <state>`, update Notes for Next Session with exact next steps, and tell me to run "Continue Task <id>." in a new session. Only that case makes a wip commit (AGENTS.md: a question leaves the work uncommitted).
 
 ## End of Develop
-- Leave only the demo running (feature and bug tasks: `bash scripts/hm.sh dev-bg`, HAS_SERVER=1, on this worktree's ports). Stop any other process you started.
-- Send the report in the format from AGENTS.md (chore, spike and docs tasks: no demo, the evidence instead). Its "Next" line follows the task's Review policy and SESSION_PER_TASK. With SESSION_PER_TASK=0, if the context is already long, recommend a new session anyway. Without the harness, "Next" is "이 브랜치 리뷰해" (hm-review) in a separate session, or "Merge branch task/<id>." once I am satisfied.
-- STOP. Do not start another task until I say so, do not merge (that waits for the review, or for the demo check of a `Review: batch` task), and do not review your own code. With SESSION_PER_TASK=0 the demo gate still applies: I check the demo before the next task starts in this session.
+- Leave only the demo running (feature and bug tasks, HAS_SERVER=1: `bash scripts/hm.sh dev-bg` on this worktree's ports). Stop every other process you started.
+- The report's "Next" line follows the task's Review policy and SESSION_PER_TASK. With SESSION_PER_TASK=0 and an already long context, recommend a new session anyway.
+- STOP. No next task until I say so, no merge (that waits for the review, or for the demo check of a `Review: batch` task), no review of your own code. With SESSION_PER_TASK=0 the demo gate still applies: I check the demo before the next task starts in this session.
+
+# Task workflow, report and Definition of Done
+The three sections below were part of AGENTS.md until v4.1. An older project's AGENTS.md may still carry them; this file wins.
+
+## Task workflow
+1. Start checks (Preconditions above). Create the branch (and worktree), set `- Status: In Progress` in the task file, commit `chore(task-<id>): start`. MERGE=pr: `git push -u <REMOTE> task/<id>` so the team sees the task is taken.
+2. Do the work the way the task's `- Type:` says:
+   - feature: (GREENFIELD=0) first add characterization tests for existing code you will change; they must pass before you change anything. Then work the task's test list with the loop in references/tdd.md.
+   - bug: first write a test that reproduces the bug and fails for that reason. Fix it. The test stays as a regression test. If the cause is not obvious, follow references/debug.md and keep its Diagnosis section in the task file.
+   - chore (refactor, dependency upgrade, tooling, infrastructure; no intended behavior change): confirm `test` and `e2e` pass before you change anything. Change. The same tests pass with their assertions unchanged. Add tests only for behavior the task explicitly changes.
+   - spike (answer a question): investigate and write the task file's Findings: the answer, the evidence, a recommendation, and follow-up tasks to propose through hm-change. Prototype code only under the path the task names, or none. No production code, no new tests required.
+   - docs: documentation only.
+3. The full suites pass: `bash scripts/hm.sh test` and `bash scripts/hm.sh e2e` with no arguments (screenshots in artifacts/e2e/screenshots/task-<id>/ if HAS_UI=1). docs and spike tasks: only if they changed code or tests.
+4. If the task's DoD includes a load test or benchmark, run `bash scripts/hm.sh load` / `bash scripts/hm.sh bench` and record the numbers in the task file Log
+   - A new migration: `bash scripts/hm.sh migrate` after adding it and after merging INTEGRATION in.
+   - A write SPEC §3 lists under repeated and concurrent writes: one test sends the request twice (or at once) and the result stays correct.
+5. `bash scripts/hm.sh check` passes. If the task adds or upgrades a dependency, or lists a SEC-xx, `bash scripts/hm.sh security` passes too
+6. Commit: `<type>(task-<id>): <summary>` (feature: `feat`, bug: `fix`, chore: `chore` or `refactor`, spike and docs: `docs`)
+7. In the task file: `- Status: In Review`, Log entry, Notes for Next Session. Commit `docs(task-<id>): ready for review`.
+8. feature and bug: prepare the demo (`bash scripts/hm.sh dev-bg` if HAS_SERVER=1)
+9. Send the report (format below)
+10. STOP and wait. Do not start another task until the user says so (in this session only if SESSION_PER_TASK=0).
+
+## Report format (in CHAT_LANG)
+- Summary (3 lines at most)
+- Demo (feature and bug): the task's demo scenario as steps I can follow (how to open or call it, what to expect), with the ports PORT_OFFSET gives this worktree
+- Instead of a demo (chore, spike, docs): what changed and the evidence (tests that still pass, or the Findings)
+- Test results: unit N passed, e2e N passed, (load / bench: p95 ms)
+- Needs checking / open issues
+- Next:
+  - Review: each → "Review Task <id>." in a separate session (review always runs in a separate session)
+  - Review: batch → "Merge Task <id>." (merged without its own review; "Review all." covers it later)
+  - Tasks that can start now (their dependencies are merged). SESSION_PER_TASK=1: in a new session; 0: also in this session
+
+## Definition of Done
+- By type. feature: every AC is covered by passing unit or E2E tests. bug: the regression test failed before the fix and passes after it. chore: existing tests pass with unchanged assertions. spike: Findings answer the question with a recommendation. docs: the docs match the code.
+- `bash scripts/hm.sh test`, `bash scripts/hm.sh e2e`, `bash scripts/hm.sh check` pass on the task branch after INTEGRATION is merged into it
+- (HAS_UI=1) E2E follows the selector policy in SPEC §5
+- Each SEC-xx in the task's Requirements has a passing test that proves it
+- Commits follow `<type>(task-<id>): <summary>`
+- Review comments applied and committed (Review: each), or the task is covered by a later "Review all." (Review: batch)
+- Only then does the task file show Done (set by the apply-review step)

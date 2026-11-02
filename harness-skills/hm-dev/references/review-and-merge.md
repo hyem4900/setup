@@ -1,13 +1,13 @@
 # Harness: Apply review and Integrate (part of hm-dev)
 
-Read this for a review to apply ("리뷰 반영해: ...") or a merge ("Merge Task <id>.", "Merge branch <branch>."). The top of SKILL.md still applies: AGENTS.md, the rules on other skills and named files, and Inputs (with the harness or without it).
+Read this for a review to apply ("리뷰 반영해: ...") or a merge ("Merge Task <id>.", "Merge branch <branch>."). The top of SKILL.md still applies: AGENTS.md, and without the harness references/no-harness.md and the Inputs in references/develop-without-harness.md.
 
 # Apply review
 
 ## Preconditions
 - Input is one of:
   - A path to a review file (e.g. `리뷰 반영해: artifacts/review/task-2-review-1.md`). Read that file and use it. Do not ask for pasted text.
-  - Pasted review text in the review output format (docs/REVIEW.md). If no file exists for it yet, save it with the next free number first (Inputs: scratch files).
+  - Pasted review text in the review output format (docs/REVIEW.md). If no file exists for it yet, save it with the next free number first (scratch files: artifacts/ with the harness, else the Inputs in develop-without-harness.md).
   - A review in any other shape: pull request comments, another tool's report, a security review, notes. Turn it into the Findings table of the review format first: one row per finding, `RV-<n>`, the severity as given or, if it has none, estimated and marked `(estimated)`, file:line, problem, suggested fix. Save it as the next free review file (no task: `review-<branch, with / as ->-<k>.md`) and show it with the plan in Step 1.
 - Work where the branch lives: the task's worktree (`bash scripts/harness-state.sh worktree <id>`), or with WORKTREES=0 the main worktree switched to task/<id>. Review all: the main worktree. No task (no harness, or a review of a branch that is not task/<id>): the branch the review is about, checked out in the current worktree. A new session is fine; read AGENTS.md and the task file first, if they exist.
 - With a task: it is In Review on task/<id>. Review all: tasks merged without their own review are In Review on INTEGRATION.
@@ -46,7 +46,7 @@ If the Findings table is empty, skip Steps 1–5. With a task, do Steps 6–8. W
 8. If the status is Done: Integrate.
 
 # Integrate
-For a Done task, a `Review: batch` task that is In Review (after its demo), a review-all fix branch, a step-6 branch (perf/<n>, security/<n>), or any branch I name. "Merge Task <id>." and "Merge branch <branch>." start here, with the same place-to-work and clean-tree checks as Apply review. Without the harness, INTEGRATION and MERGE are the defaults in Inputs, and Step 2 does not apply.
+For a Done task, a `Review: batch` task that is In Review (after its demo), a review-all fix branch, a step-6 branch (perf/<n>, security/<n>), or any branch I name. "Merge Task <id>." and "Merge branch <branch>." start here, with the same place-to-work and clean-tree checks as Apply review. Without the harness, INTEGRATION and MERGE are the defaults in no-harness.md, and Step 2 does not apply.
 1. Note the branch head (`git rev-parse HEAD`), then bring INTEGRATION into the branch, in the branch's worktree: MERGE=pr: `git fetch <REMOTE>` and merge `<REMOTE>/<INTEGRATION>`; MERGE=local: merge `<INTEGRATION>`.
    - No conflict: go on.
    - Conflicts only in docs, lockfiles (regenerate them with the install command) or other mechanical spots (imports, lists both sides add to): resolve, commit the merge.
@@ -58,7 +58,7 @@ For a Done task, a `Review: batch` task that is In Review (after its demo), a re
    - Commit: `docs(task-<id>): record development decisions`.
 3. If the merge brought a change outside Markdown (`git diff --name-only <noted head> HEAD` lists a file that is not `*.md`): the full `bash scripts/hm.sh test`, `bash scripts/hm.sh e2e` and `bash scripts/hm.sh check` must pass on the branch. If it brought only Markdown or nothing, the full runs at the noted head (Develop's last run, the review, or the fixes) still hold: skip them. If they fail, stop and ask.
 4. MERGE=local: in the main worktree, clean and on INTEGRATION (WORKTREES=0: `bash scripts/hm.sh stop`, then `git switch <INTEGRATION>`): `git merge --no-ff --no-edit <branch>`. Then, WORKTREES=1: `bash scripts/hm.sh stop` in the task's worktree and `git worktree remove <dir>` (keep the branch). WORKTREES=0: the main worktree stays on INTEGRATION.
-5. MERGE=pr: `git push -u <REMOTE> <branch>`. Write the pull request body in DOC_LANG to artifacts/pr/<branch, with `/` as `-`>.md (Inputs: scratch files):
+5. MERGE=pr: `git push -u <REMOTE> <branch>`. Write the pull request body in DOC_LANG to artifacts/pr/<branch, with `/` as `-`>.md (scratch files: artifacts/ with the harness, else the Inputs in develop-without-harness.md):
    - Summary: the smallest list or table that shows what changes for a user or a caller
    - Evidence: test and e2e counts at the pushed head, the review file in docs/reviews/, and the demo screenshots (artifacts/e2e/screenshots/task-<id>/) if any
    - Merge danger: one-way door or two-way door (can it be undone by reverting?), and the blast radius: what breaks, and for whom, if it is wrong

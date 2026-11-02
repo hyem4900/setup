@@ -6,21 +6,10 @@ description: Step 6-1 of the harness flow. Use for "부하 테스트 해", "성�
 # Harness Step 6-1: Performance test
 
 Talk to me in CHAT_LANG and write documents in DOC_LANG (both in .harness/config; Korean and English if unset). Code, identifiers and the fixed tokens scripts parse stay in English. Ask questions in the question format of AGENTS.md ("Ask the user when"): ❓ question with a bold topic, then ➡️ your recommendation.
-Other skills: use another skill only when my message names it or a step of this skill names it. An installed skill whose description seems to fit the work (a design system, charts, documents) stays unused, unless SPEC or DECISIONS records that I chose it.
-Files I name: a file named in my message is the first source for the role I give it, and harness files only fill what it lacks. If they disagree, show the difference and ask which one wins. If it is missing or does not fit that role, say so in one line and go on without it. Read it; edit it only if I ask.
 
 ## Inputs
-Find each input in this order, and name in LOAD_TEST.md the file that served (e.g. `Targets: docs/prd.md §5 (stand-in for SPEC §10)`): a file I name → the harness file → a file in the repository that plays the same role (ask once if several fit) → the fallback.
-Without the harness (no .harness/config): follow references/no-harness.md in this skill's folder (what not to create, the defaults for languages, branch, commands and scratch files, and the question format). With the harness, AGENTS.md covers this and you read it first.
-
-| Input | Harness file | Stand-ins to look for | Fallback |
-|---|---|---|---|
-| Targets | SPEC §10a and §10b (from the REQUIRE NFRs) | numbers in a requirements doc, a performance section in the README or design docs | ask me, in one round: per endpoint or command, the p95; for a service, also the concurrent users and the error rate |
-| Load and benchmark tools | SPEC §1 | a load or benchmark setup already in the repository | recommend one (precondition below) |
-| Production-like start | `bash scripts/hm.sh load` (each component's `<c>_PROD` command on PORT_OFFSET + 100) | the repository's production start command (a start script, a container file) | ask me; write it into LOAD_TEST.md Conditions |
-| Levels and duration | LOAD_LEVELS, LOAD_DURATION | — | 10 users, the target, twice the target; 2 minutes each |
-| Scenarios | the demo scenarios in docs/tasks/ | the README's usage, API docs, E2E tests | the main user flows, which I confirm |
-| test, e2e, check | `bash scripts/hm.sh test / e2e / check` | the repository's commands | none: say which did not run |
+With the harness: AGENTS.md first, then targets in SPEC §10a and §10b, tools in SPEC §1, `bash scripts/hm.sh load` (each component's `<c>_PROD` command on PORT_OFFSET + 100), LOAD_LEVELS and LOAD_DURATION in .harness/config, the demo scenarios in docs/tasks/, `bash scripts/hm.sh test / e2e / check`.
+Without the harness (no .harness/config): read references/no-harness.md and references/inputs.md in this skill's folder first; the latter says what stands in for each of those and what to ask for when nothing does.
 
 ## Preconditions
 - Read the targets (Inputs). Pick what to run:

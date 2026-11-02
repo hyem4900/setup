@@ -5,6 +5,7 @@
 - Run `bash scripts/hm.sh test`, `bash scripts/hm.sh e2e`, and `bash scripts/hm.sh check` yourself, at the commit you review, and report the results. Do not trust the task file.
 - You may run the product to use it as a user would (Demo walkthrough). Stop what you started before you finish.
 - Read .harness/config first; skip checklist items that do not apply and say so.
+- Never run `git commit`, `git tag`, `git merge`, `git checkout`/`git switch` in an existing worktree, `git stash`, or anything else that changes a tree someone works in.
 
 ## Where to run
 - Review Task <id>: the task's worktree if it exists, is clean, and is at the head of task/<id>. Otherwise a temporary detached worktree: `git worktree add --detach <WORKTREE_DIR>/review-<id> task/<id>` (a teammate's task: `<REMOTE>/task/<id>`), with `PORT_OFFSET` from `bash scripts/harness-state.sh worktree review-<id>` in its `.harness/local`, then `bash scripts/hm.sh setup`. Remove it with `git worktree remove` at the end. Never switch branches in a worktree someone works in.

@@ -93,6 +93,9 @@ has "plan: chore has no demo, each -> review" "Task 0 (chore): start (hm-dev), r
 has "plan: blocked tasks and the final review all" "Task 2: blocked: Task 2 waits for Task 1" "Task 9: done, skip" "All: review all, apply, merge"
 
 run worktree 1; has "worktree 1: base and blocker" "base=main" "offset=0" "blocked_by=0" "status=Todo" "where=int"
+run start-check 0; rc_is "start-check 0 passes" 0; has "start-check 0 output" "result=ok" "dir=" "offset=0" "base=main" "branch_exists=no"
+run start-check 1; rc_is "start-check 1 blocked" 3; has "start-check blocked reason" "result=stop" "waits for Task 0"
+run start-check 7; rc_is "start-check unknown task" 3; has "start-check unknown reason" "no docs/tasks/7.md"
 
 run next; rc_is "next without run-begin fails" 1
 
@@ -106,6 +109,7 @@ lacks "next does not start blocked task 1" "task=1"
 # dev session: branch, status In Review (chore: no demo)
 git checkout -q -b task/0 main; echo a > a.py; set_status 0 "In Review"; commit "feat(task-0): work"
 HEAD0=$(git rev-parse HEAD); git checkout -q main
+run start-check 0; rc_is "start-check: task no longer Todo" 3; has "start-check In Review reason" "Task 0 is In Review, not Todo"
 run check 1 --next; rc_is "check dev step (chore)" 0
 has "chore: ok, no demo, next is review" "result=ok" "status=In Review" "demo=0" "action=review" "task=0" "step=2" "Review Task 0."
 lacks "chore not held" "held="
@@ -156,16 +160,21 @@ run status; has "final status" "0          Done" "1          Done" "2          D
 OUT=$(cat artifacts/runs/*/summary.tsv 2>/dev/null)
 has "summary.tsv records every checked step" "step	action	task	started	seconds	result" "1	start	0	" "6	apply	1	" "11	review-all	all	" "	ok"
 n=$(printf '%s\n' "$OUT" | grep -c "	ok$"); if [ "$n" -eq 12 ]; then ok "summary.tsv: 12 ok rows"; else bad "summary.tsv: $n ok rows, wanted 12" "$OUT"; fi
+run report; rc_is "report after run-end picks the latest run" 0
+has "report: kind and task tables" "kind     steps  minutes" "dev " "review " "apply " "merge " "total " "task   steps  minutes continues re-reviews questions" "slowest: step " "cost drivers:"
 
 # ====================================================================================
 echo "== scenario B: wip continue, dirty tree, MAX_CONTINUE"
 new_repo MODE=HACKATHON INTEGRATION=main MERGE=local PARALLEL=1 WORKTREES=0
 task_file 0 "A" batch none
+task_file 1 "B" batch none
 commit "chore: harness"; git tag harness-init
 run run-begin 0 --no-demo; has "run-begin --no-demo" "result=ok"
 run next; has "start 0" "action=start"
 git checkout -q -b task/0 main; set_status 0 "In Progress"; commit "chore(task-0): start"
 echo x > x.py; commit "wip(task-0): half done"; git checkout -q main
+run start-check 0; rc_is "start-check: In Progress" 3; has "start-check says continue" "Continue Task 0."
+run start-check 1; rc_is "start-check: PARALLEL full" 3; has "start-check PARALLEL reason" "1 task(s) already In Progress (PARALLEL=1)"
 run check 1 --next; has "wip -> continue" "result=continue" "action=continue" "Continue Task 0."
 git checkout -q task/0; echo y > y.py; commit "wip(task-0): more"; git checkout -q main
 run check 2 --next; has "second wip -> continue" "result=continue" "action=continue"
@@ -176,6 +185,8 @@ run run-end
 run run-begin 0 --no-demo; run next; has "continue handed out" "action=continue"
 run check 1; rc_is "no commit after continue = question" 3; has "question reason" "result=needs_user" "stopped to ask a question"
 OUT=$(cat artifacts/runs/*/summary.tsv 2>/dev/null); has "summary.tsv also records continue and needs_user" "	continue" "	needs_user"
+run report; has "report during a run: the active run, with its cost drivers" "Task 0: 1 continue(s)" "Task 0: 1 question(s)"
+run report no-such-run; rc_is "report on an unknown run fails" 1
 run run-end
 # a continue is handed out even with a dirty tree (a question leaves work uncommitted)
 git checkout -q main; echo dirty > dirty.txt
@@ -196,6 +207,7 @@ task_file 1 "B" batch none
 task_file 2 "C" batch "0, 1"
 commit "chore: harness"; git tag harness-init
 run worktree 0; has "worktree dir outside repo" "dir=" "/wt/0" "offset=10" "exists=no"
+run start-check 0; has "start-check with worktrees" "result=ok" "/wt/0" "offset=10" "branch_exists=no"
 run run-begin all; run next --all
 has "two starts with different offsets" "task=0" "PORT_OFFSET=10" "task=1" "PORT_OFFSET=20" "action=wait" "all 2 slot(s) busy"
 lacks "task 2 waits for its dependencies" "task=2"
@@ -213,6 +225,7 @@ new_repo MODE=FULL INTEGRATION=main MERGE=local PARALLEL=1 WORKTREES=0
 task_file 0 "A" each none; commit "chore: harness"; git tag harness-init
 # a dirty main worktree refuses a start (the task is still Todo here)
 echo dirty > dirty.txt
+run start-check 0; rc_is "start-check: dirty tree" 3; has "start-check dirty reason" "uncommitted changes"
 run run-begin 0 --no-demo; run next; rc_is "dirty tree refuses start" 3; has "dirty reason" "uncommitted changes"
 rm dirty.txt; run run-end
 run run-begin 0 --no-demo; run next

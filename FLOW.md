@@ -9,6 +9,36 @@ README.md나 CSV가 없어도, 웹이 아니어도(API, CLI, 라이브러리, �
 
 v3에서 바뀐 점은 `CHANGELOG.md`에 있음.
 
+## 왜 이 하네스인가
+
+**누구를 위한 것.** 코딩 에이전트(Codex, Claude Code)로 제품을 만드는 개발자 한 명 또는 작은 팀. 하루짜리 해커톤부터 몇 주짜리 프로젝트까지, 새 프로젝트와 기존 코드 모두. 하네스를 몰라도 되게, 사람이 하는 일은 질문에 답하고 데모를 확인하는 것뿐임.
+
+**에이전트에게 그냥 시키면 생기는 문제.** 각 문제에 하네스가 어떤 장치로 답하는지 함께 적음.
+
+| 문제 | 하네스의 답 |
+|---|---|
+| 요구사항을 짐작해서 만들고, 데모에서야 틀린 걸 앎 | hm-req 인터뷰로 R-xx/AC를 먼저 고정. 개발 중 생긴 결정은 묻고(DQ) 테스트로 굳힘 |
+| 세션이 끝나면 맥락이 사라지고, 다음 세션이 처음부터 다시 탐색함 | task 파일(Status, Log, Notes for Next Session), `wip` 커밋, "Continue Task", 탐색 노트 |
+| 테스트 스킵, 비밀값 커밋, 건드리면 안 되는 파일 수정 같은 위반을 사람이 리뷰에서 찾아야 함 | `hm.sh check`와 pre-commit hook이 커밋 전에 기계적으로 막음 |
+| 코드를 쓴 세션이 자기 코드를 리뷰함 | 리뷰는 코드를 쓰지 않은 별도 세션·서브에이전트가 Spec·Standards 두 축으로 함 |
+| 여러 task를 동시에 돌리면 포트·DB·브랜치가 충돌함 | task마다 브랜치·worktree, PORT_OFFSET·`HM_SLOT`으로 자원 분리, 병합은 한 번에 하나 |
+| 요구사항이 바뀌면 문서와 코드가 어긋남 | hm-change가 CR → 영향 분석 → REQUIRE·SPEC·task를 한 번에 갱신 |
+| 무엇이 왜 결정됐는지 나중에 알 수 없음 | REQUIRE §11, DECISIONS D-xx, task Log, docs/reviews/, hm-audit 추적표 |
+
+**목표.** 아래가 지켜지면 하네스가 제 역할을 한 것임. 확인 방법을 함께 적음.
+
+| 목표 | 확인 |
+|---|---|
+| 사람의 개입은 "단계별 스킬" 표의 게이트뿐이고, 그 밖에는 에이전트가 끝까지 감 | hm-auto 실행에서 멈춤 사유가 데모·질문 외에 없음 |
+| 모든 동작이 요구사항 ID로 이어짐 | AC마다 통과하는 테스트, hm-audit 누락 0 |
+| 규칙 위반이 커밋에 들어가지 않음 | `hm.sh check`가 전체 트리에서 통과, `selftest`가 패턴을 검증 |
+| 세션이 바뀌어도 작업이 이어짐 | "Continue Task"가 문서와 git만으로 재개됨 |
+| 프로젝트 성격(웹, CLI, 라이브러리, 컴포넌트 여럿)과 도구가 달라도 같은 흐름 | `.harness/config`만 다르고 스킬·스크립트는 같음 |
+
+**기대 효과.** 재작업(리뷰 Blocker, re-review, 데모 수정 요청)이 줄고, 세션 교체 비용(다시 탐색)이 줄고, 리뷰에서 기계적 지적이 사라짐. 실측은 아직 없음. 측정은 `harness-state.sh report`(재작업 횟수)와 hm-review 파일의 Standards 축 지적 수로 함 ("비용과 시간").
+
+**하지 않는 것.** 배포, CI 파이프라인, 운영(모니터링, 롤백)은 다루지 않음 (MERGE=pr의 CI 작업 하나만 예외). 특정 테스트·보안 도구를 정하지 않음. 이슈 트래커, 대형 조직의 승인 절차와 연동하지 않음. 1~3단계(요구사항, 설계, 셋업)는 자동화하지 않고 사람이 함께 함.
+
 ## .harness/config
 
 1단계(hm-req)가 저장소를 스캔해 추정하고, 내가 한 번에 확인함. MODE, SESSION_PER_TASK, 작업 방식(PARALLEL, WORKTREES, MERGE)은 추정하지 않고 나에게 직접 물어서 확정함. 셋은 하나로 묶지 않고 각각 따로 물음. 하네스를 몰라도 고를 수 있게, 선택지마다 실제로 어떻게 진행되는지(누가 어느 대화창을 여는지, 무엇이 동시에 돌아가는지, 어디서 병합하는지, 얻는 것과 잃는 것)를 풀어서 설명함. 예를 들어 SESSION_PER_TASK는 세션이 무엇인지, 새 세션과 같은 세션의 차이, 나중에 바꿀 수 있다는 점까지 안내함.
@@ -124,7 +154,7 @@ Root (메인 작업 트리, INTEGRATION 브랜치)
 └─ review-3/          (리뷰용 임시 worktree, 끝나면 제거)
 ```
 
-스킬 파일: `hm-*/SKILL.md` 9개 (수동 8개 + hm-auto). 일부 경우에만 필요한 내용은 따로 두고 그때만 읽음: hm-dev의 `references/tdd.md`(테스트 먼저 루프), `references/debug.md`(디버그 절차), `references/review-and-merge.md`(리뷰 반영·병합. 개발 세션은 읽지 않음), hm-setup의 `references/setup.md`(셋업, 설계가 끝난 뒤 읽음)와 `references/no-require.md`(REQUIRE 없이 시작할 때), 여러 스킬이 같이 쓰는 `references/question-format.md`(질문 양식)와 `references/no-harness.md`(하네스 없이 돌 때의 규칙. 원본은 `harness-skills/_shared/`, `sync-shared.sh`로 펼침), hm-auto의 `references/stop-reasons.md`(멈췄을 때만 읽음), hm-req의 `references/interview.md`(§11 질문 양식과 인터뷰 절차. 초안의 §11을 쓸 때부터 읽음)와 `templates/REQUIRE.template.md`·`templates/config.template`(hm-setup도 읽음). 사용하는 에이전트의 스킬 경로에 폴더째 복사함.
+스킬 파일: `hm-*/SKILL.md` 9개 (수동 8개 + hm-auto). 일부 경우에만 필요한 내용은 따로 두고 그때만 읽음: hm-dev의 `references/tdd.md`(테스트 먼저 루프), `references/debug.md`(디버그 절차), `references/review-and-merge.md`(리뷰 반영·병합. 개발 세션은 읽지 않음), `references/develop-without-harness.md`(하네스 없이 개발할 때의 입력 표와 시작 절차), hm-review·hm-audit·hm-load-test·hm-security·hm-change의 `references/inputs.md`(하네스 없이 돌 때 각 입력의 대체 파일 표), hm-setup의 `references/setup.md`(셋업, 설계가 끝난 뒤 읽음)와 `references/no-require.md`(REQUIRE 없이 시작할 때), 여러 스킬이 같이 쓰는 `references/question-format.md`(질문 양식)와 `references/no-harness.md`(하네스 없이 돌 때의 규칙. 원본은 `harness-skills/_shared/`, `sync-shared.sh`로 펼침), hm-auto의 `references/stop-reasons.md`(멈췄을 때만 읽음), hm-req의 `references/interview.md`(§11 질문 양식과 인터뷰 절차. 초안의 §11을 쓸 때부터 읽음)와 `templates/REQUIRE.template.md`·`templates/config.template`(hm-setup도 읽음). 사용하는 에이전트의 스킬 경로에 폴더째 복사함.
 - Codex: `~/.codex/skills/hm-*`
 - Claude Code: `~/.claude/skills/` 또는 프로젝트의 `.claude/skills/`
 - 복사본이라서 setup 폴더에서 스킬을 고치면 다시 복사해야 반영됨. 복사 명령은 아래 "자동 실행 > 설치"에 있음.
@@ -269,6 +299,78 @@ web_HEALTH=http_has http://localhost:$web_PORT/ "$SERVICE-web"
 | 부하 테스트 | 10 / target / 2x | target 1회 |
 
 기본 개수에 도달했는데 중요한 질문이나 결정이 남으면, 계속할지 한 번 물어봄. task는 크기 기준(한 세션 분량, 대략 R-xx 3개 또는 AC 8개 이하)으로 나눔.
+
+## 비용과 시간
+
+하네스를 돌리는 비용은 세 가지로 셈: 에이전트 세션(자동 실행에서는 서브에이전트) 수, 세션마다 읽는 분량, 사람이 멈춰서 답하는 시간. 아래 숫자는 스킬 구조에서 계산한 **추정치**이고 실측이 아님 (실측 데이터 없음, 2026-11 기준). 실측은 `harness-state.sh report`로 하고, 값이 다르면 이 섹션을 고침.
+
+### 세션과 서브에이전트 수
+
+단계 하나가 세션(또는 서브에이전트) 하나임.
+
+| 단계 | 수동 (세션) | 자동 (서브에이전트) | 비고 |
+|---|---|---|---|
+| 1 hm-req | 1 | — | 인터뷰 라운드 수와 무관하게 세션 하나 |
+| 2~3 hm-setup | 1 | — | 설계와 셋업을 이어서 함. Task 0은 일반 task로 셈 |
+| 4~5 task, `Review: each` | 3 (개발, 리뷰, 반영·병합) | 3 (start, review, apply) | 리뷰 반영을 개발 세션에서 이어 하면 2 |
+| 4~5 task, `Review: batch` | 2 (개발, 병합) | 2 (start, merge) | |
+| Review all (batch task가 있을 때) | 2 (리뷰, 반영·병합) | 2 (review-all, apply-all) | 실행당 한 번 |
+| 탐색 노트 | — | 1 | 자동 실행 시작 때 노트가 없거나 낡았을 때만 |
+| 6 hm-load-test, hm-security, hm-audit | 각 1 | — | 선택 |
+| 추가 비용 | | | continue +1 (task당 MAX_CONTINUE=2까지), Blocker +2 (rereview, apply. MAX_REREVIEW=1까지), 데모 수정 요청 +1 (hm-change) + 새 task |
+
+예 (처음 계획, 모든 단계가 한 번에 통과했을 때):
+- FULL, Task 0 + 5개 (`each` 2개, `batch` 4개): 서브에이전트 2×3 + 4×2 + 2 + 1 = **17**, 수동이면 세션 2 + 17 = 19
+- HACKATHON, Task 0 + 3개 (전부 `batch`): 서브에이전트 4×2 + 2 + 1 = **11**, 수동이면 세션 2 + 11 = 13
+- continue, Blocker, 질문 몫으로 20~30%를 더 잡음 (추정)
+
+### 세션마다 읽는 분량
+
+코드를 읽기 전에 세션이 읽는 하네스 문서. 크기는 스킬 저장소의 파일 크기이고, 영어 약 4바이트를 1토큰으로 봄.
+
+| 세션 | 읽는 것 | 크기 (추정) |
+|---|---|---|
+| hm-dev 개발 | AGENTS.md 15KB, SKILL 12KB, tdd.md 3KB, task 파일, REQUIRE·SPEC의 해당 부분, 탐색 노트(150줄) | 40~60KB ≈ 10~15k 토큰 |
+| hm-review | AGENTS 15KB, SKILL 8KB, REVIEW.md 10KB, STANDARDS 5KB, task·SPEC의 해당 부분, diff | 40~50KB + diff |
+| hm-dev 리뷰 반영·병합 | AGENTS, SKILL, review-and-merge.md 10KB, 리뷰 파일 | 35~45KB |
+| hm-setup | SKILL 17KB, setup.md 24KB, 템플릿 60KB(복사해서 채움), REQUIRE | 100KB 이상 ≈ 25~30k 토큰. 프로젝트당 한 번 |
+| hm-req | SKILL 15KB, interview.md, 템플릿, 원천 문서 | 30KB + 원천 문서 |
+
+AGENTS.md는 모든 세션이 읽어서 가장 비싼 파일임. 그래서 코딩 규칙은 STANDARDS.md로 떼고 AGENTS.md에는 언제 읽을지만 적음. 스킬의 `references/`도 같은 이유로 필요한 경우에만 읽음.
+
+### 사람의 시간 (추정)
+
+| 게이트 | 시간 | 줄이는 법 |
+|---|---|---|
+| hm-req 인터뷰 | FULL 10문항 60~90분 (INTERVIEW 15문항이면 2시간), HACKATHON 5문항 30분 | REQUIRE §11에 답을 직접 적기, "나머지 추천대로" |
+| hm-setup 스택·D-xx | 한 라운드 20~30분, 계획 확인 10분 | |
+| task 데모 확인 | feature·bug task마다 5~15분 | "데모 확인 없이 자동으로" (확인 필요 항목만 한 줄로 받음) |
+| 리뷰 결과 확인 | `each`는 Blocker 판단 5분, Review all은 10~20분 | |
+| 개발 중 질문 | 질문마다 2~5분. 자동 실행에서는 그 task만 멈춤 | REQUIRE와 task 파일에 값·예외를 미리 적기 |
+| 6단계 보고 확인 | 각 15~30분 | |
+
+운영 인력: 혼자 전부 돌릴 수 있게 되어 있음 (MERGE=local). 팀은 MERGE=pr로 PR 리뷰가 게이트로 추가됨.
+
+### 비용을 좌우하는 설정
+
+| 설정·선택 | 줄이는 것 | 대가 |
+|---|---|---|
+| MODE=HACKATHON | 질문·결정·처음 task 수 (세션 수) | [ASSUMPTION]이 늘어남 |
+| `Review: batch` (기본값: one-way door만 `each`) | task당 서브에이전트 3 → 2, 리뷰는 Review all 한 번 | 문제를 늦게 발견 |
+| PARALLEL 2~3 | 벽시계 시간 (토큰은 그대로) | worktree마다 `hm.sh setup`, 포트·DB 분리 필요 |
+| SESSION_PER_TASK=0 | 세션 시작마다 문서를 다시 읽는 비용 | 컨텍스트가 길어져 continue 위험 |
+| 탐색 노트 (자동 실행 기본) | dev마다 코드를 처음부터 탐색하는 비용 | 노트 갱신 서브에이전트 1 |
+| task 크기 (R-xx 3개 또는 AC 8개 이하) | continue (서브에이전트 +1, 문맥 재구성) | task 수 증가 |
+| `hm.sh test <파일>`로 반복, 전체는 끝에만 (기본) | 테스트 시간 | — |
+| pre-commit은 스테이징 파일만 검사 (기본) | 커밋 시간 | — |
+| MAX_CONTINUE, MAX_REREVIEW | 같은 task에 무한히 쓰는 것 | 멈춰서 사람이 봄 |
+
+### 실측과 갱신
+
+- 자동 실행이 끝나면 `bash scripts/harness-state.sh report` (hm-auto 마지막 보고에도 들어감). 단계 하나가 서브에이전트 하나라서 `total`의 steps가 실행 크기임.
+- 읽는 법: `continues`가 있는 task는 너무 큰 것 → "Task N 나눠줘". `questions`는 REQUIRE나 task 파일에 결정이 빠진 것 → 다음 task 전에 보충. `review`나 `merge`가 가장 느리면 PARALLEL을 올려도 빨라지지 않음 (병합은 한 번에 하나).
+- 토큰은 스크립트가 셀 수 없음 (호스트가 서브에이전트의 사용량을 돌려주지 않음). 실행 전후 호스트의 사용량 표시를 보고 `artifacts/runs/<run>/`에 메모해 두면 단계 수 대비 토큰이 나옴.
+- 수동 흐름은 기록이 없음. 세션 수는 위 표로 세고, 시간은 task 파일 Log와 커밋 시각으로 봄.
 
 ## 단계별 스킬
 
@@ -635,12 +737,14 @@ bash scripts/harness-state.sh worktree 3
 | `status` | 상태 표 (브랜치를 가로질러). 리뷰 없이 병합된 task가 있으면 `review backlog: N task(s) …, M lines changed` 한 줄을 더 보여 주고, FULL 모드에서 task 3개 또는 600줄 이상이면 `(suggest: Review all.)`를 붙임 (`REVIEW_ALL_TASKS`, `REVIEW_ALL_LINES`로 조정). 제안일 뿐 스크립트가 실행하지는 않음 |
 | `plan <target>` | task별 다음 단계 (변경 없음) |
 | `worktree <id>` | task(또는 `review-3` 같은 보조 worktree)의 경로, 브랜치, 기준 브랜치, PORT_OFFSET, 막고 있는 의존 task |
+| `start-check <id>` | "Start Task"의 사전조건 중 파일과 git으로 답할 수 있는 것을 한 번에 검사: task 파일과 상태, 남이 맡은 브랜치, 미병합 의존, PARALLEL, dirty worktree. 통과하면 `dir`, `offset`, `base`, `branch_exists`를 돌려줌. hm-dev가 산문으로 검사하던 것을 대신함 (SESSION_PER_TASK와 `hm.sh check`는 스킬에 남음) |
 | `run-begin <target> [--no-demo]` | 검증, lock, 실행별 카운터 초기화. `--no-demo`면 데모 확인 없이 진행 |
 | `next [--all]` | 단계 하나를 내줌 (`action`, `step`, `task`, `dir`, `skill`, `prompt`, `log`). `--all`이면 지금 시작할 수 있는 단계를 한 번에 모두 내줌 (블록 사이에 `--` 줄, 상태는 한 번만 읽음). 마지막 블록은 더 내줄 게 없으면 `action=wait`, 끝이면 `done`, 사람이 필요하면 `stop` |
 | `check <step> [--next]` | 그 단계의 결과 확인 (`ok` / `continue` / `needs_user`). `--next`면 `ok`·`continue` 뒤에 `--`와 `next --all` 결과까지 한 번에 출력하고, 데모 확인이 필요한 task는 다음 단계를 내주기 전에 스스로 hold함 |
 | `notes` | 탐색 노트 상태 (`fresh` / `stale` / `missing` / `skip`), 경로, INTEGRATION 커밋 |
 | `hold <id> [이유]` / `release <id>` | 그 task에 단계를 내주지 않음 / 다시 내줌 (데모 답을 기다리는 동안). `next`는 hold된 task만 남으면 `action=wait`, `held=<id들>` |
 | `run-end` | lock 해제, 대기 중 단계와 hold 정리 |
+| `report [run]` | 그 실행(기본: 진행 중이거나 가장 최근 실행)의 `summary.tsv`를 집계: 단계 종류별·task별 단계 수와 분, 가장 느린 단계, 비용 요인(continue, 재리뷰, 질문 횟수). 아무것도 바꾸지 않음. 아래 "비용과 시간" |
 
 target: `<id>`, `<id>,<id>`, `N-M`(숫자 ID), `all`, `review-all`. 환경 변수: `MAX_CONTINUE`(기본 2), `MAX_REREVIEW`(기본 1). 종료 코드: 0 정상, 1 사용법·사전조건 오류, 3 사람 필요.
 
@@ -697,7 +801,7 @@ target: `<id>`, `<id>,<id>`, `N-M`(숫자 ID), `all`, `review-all`. 환경 변�
 | 데모 확인에서 "중단" | 내가 멈춤 | 다시 "자동으로 진행해". 답하지 않은 데모는 보고에 나옴. 재개하면 그 task의 리뷰·병합으로 넘어가므로 먼저 확인함 |
 
 재개는 언제나 같은 명령("자동으로 진행해")임. 상태가 파일과 브랜치에 있어서 잃는 것이 없음.
-각 단계의 서브에이전트 마지막 메시지는 `artifacts/runs/<run>/<NN>-<action>-<task>.md`에 저장됨. 단계별 소요 시간과 결과는 같은 폴더의 `summary.tsv`에 쌓임 (step, action, task, 시작 시각, 초, 결과). 마지막 보고가 단계 종류별 합계와 가장 느린 단계를 알려 주므로, PARALLEL을 올릴지 리뷰가 병목인지 여기서 판단함.
+각 단계의 서브에이전트 마지막 메시지는 `artifacts/runs/<run>/<NN>-<action>-<task>.md`에 저장됨. 단계별 소요 시간과 결과는 같은 폴더의 `summary.tsv`에 쌓임 (step, action, task, 시작 시각, 초, 결과). 마지막 보고가 `harness-state.sh report`의 집계(단계 종류별·task별 단계 수와 분, 가장 느린 단계, 비용 요인)를 그대로 보여 주고, 다음 실행을 싸거나 빠르게 할 방법이 보이면 한 줄 덧붙임. 해석은 아래 "비용과 시간".
 
 ### 스크립트가 의존하는 규칙
 

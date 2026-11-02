@@ -12,7 +12,11 @@
 #   plan <target>        Next step per task from the current state. Changes nothing.
 #   worktree <name>      Where Task <name> (or a helper worktree such as review-3) is worked on:
 #                        dir, branch, base, port offset, blocking dependency
-#   notes                Codebase notes for dev sub-agents: fresh | stale | missing | skip
+#   start-check <id>     Every precondition of "Start Task <id>." that files and git can answer:
+#                        result=ok with dir, offset, base, branch_exists, or result=stop (exit 3)
+#                        with the reason (status, a branch someone else may own, an unmerged
+#                        dependency, PARALLEL tasks In Progress, a dirty worktree)
+#   notes               Codebase notes for dev sub-agents: fresh | stale | missing | skip
 #   run-begin <target> [--no-demo]  Validate, take the lock, reset per-run counters
 #   next [--all]         Hand out one step (key=value lines), or all that can start ("--" between)
 #   check <step> [--next] Verify a step that next handed out; --next: then "--" and next --all.
@@ -20,6 +24,9 @@
 #   hold <id> [reason]   Hand out nothing for Task <id> until release (e.g. its demo waits)
 #   release <id>         End a hold
 #   run-end              Release the lock and forget pending steps and holds
+#   report [run]         Where the time went in a run (default: the active or latest run):
+#                        steps and minutes per step kind and per task, the slowest step, and the
+#                        cost drivers (continues, re-reviews, questions). Reads summary.tsv only.
 #
 # Targets: <id> | <id>,<id>,... | N-M (numeric ids) | all | review-all
 # Env:     MAX_CONTINUE (default 2), MAX_REREVIEW (default 1),
@@ -80,7 +87,7 @@ log_step() { # log_step <result>
   STEP_NO=
 }
 
-usage() { sed -n '2,25p' "$0" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '2,32p' "$0" | sed 's/^# \{0,1\}//'; }
 
 is_num() { case $1 in ''|*[!0-9]*) return 1 ;; esac; }
 
@@ -770,6 +777,43 @@ cmd_worktree() {
   fi
 }
 
+# start-check <id>: the "Start Task" preconditions that files and git can answer, in one call,
+# so hm-dev reads one result instead of running them itself. What only the session knows
+# (SESSION_PER_TASK) and `hm.sh check` stay with the skill.
+cmd_start_check() {
+  local id=${1:-} st d n t dir
+  OUT_KEY=result
+  [ -n "$id" ] || fail "usage: start-check <task id>"
+  need_tasks
+  has_task "$id" || needs_human stop "no docs/tasks/$id.md on $INTEGRATION (run hm-setup, or hm-change for a new task)"
+  task_ref "$id"
+  [ "$TWHERE" = remote ] && needs_human stop "branch task/$id exists only on $REMOTE: someone else owns this task"
+  field "$TREF" "$id" Status; st=$REPLY
+  case $st in
+    Todo) ;;
+    "In Progress") needs_human stop "Task $id is In Progress on task/$id: use \"Continue Task $id.\"" ;;
+    *) needs_human stop "Task $id is $st, not Todo" ;;
+  esac
+  [ "$TWHERE" = local ] && needs_human stop "task/$id already has commits beyond $INTEGRATION while the task is Todo: an earlier session may own it; ask the user before reusing it"
+  deps_block "$id"; d=$REPLY
+  [ -n "$d" ] && needs_human stop "Task $id waits for Task $d to be merged into $INTEGRATION"
+  n=0
+  for t in $TASK_IDS; do
+    task_ref "$t"; field "$TREF" "$t" Status
+    [ "$REPLY" = "In Progress" ] && n=$((n + 1))
+  done
+  [ "$n" -ge "$PARALLEL" ] && needs_human stop "$n task(s) already In Progress (PARALLEL=$PARALLEL): finish or merge one first"
+  task_dir "$id"; dir=$REPLY
+  dirty_in "$dir" && needs_human stop "$dir has uncommitted changes: commit or discard them before starting Task $id"
+  say result ok
+  say dir "$dir"
+  say offset "$(offset_for "$id")"
+  d=${INT_REF#refs/heads/}; say base "${d#refs/remotes/}"
+  if ref_ok "refs/heads/task/$id"; then say branch_exists yes; else say branch_exists no; fi
+  [ -n "$FETCH_WARN" ] && say warning "$FETCH_WARN"
+  return 0
+}
+
 cmd_run_begin() {
   OUT_KEY=result
   need_tasks
@@ -1055,10 +1099,73 @@ cmd_run_end() {
   say result ok
 }
 
+# report [run]: aggregate summary.tsv. A step checked twice (a question, then its follow-up)
+# has two rows; the last one wins for its time and result, so a step counts as one sub-agent.
+cmd_report() {
+  local run=${1:-} d f
+  if [ -z "$run" ] && [ -f "$RUN_ENV" ]; then run_get RUN_ID; run=$REPLY; fi
+  if [ -z "$run" ]; then
+    for d in artifacts/runs/*/; do
+      if [ -f "${d}summary.tsv" ]; then run=${d%/}; run=${run##*/}; fi
+    done
+  fi
+  f=artifacts/runs/$run/summary.tsv
+  [ -n "$run" ] && [ -f "$f" ] || fail "no summary.tsv found under artifacts/runs/ (no automatic run has been checked yet)"
+  echo "run: $run ($f)"
+  awk -F'\t' '
+    NR == 1 { next }
+    {
+      s = $1
+      if (!(s in sact)) sorder[++ns] = s
+      sact[s] = $2; stask[s] = $3; ssec[s] = $5 + 0; sres[s] = $6
+      if ($6 == "needs_user") q[$3]++
+    }
+    END {
+      for (i = 1; i <= ns; i++) {
+        s = sorder[i]; act = sact[s]; task = stask[s]; sec = ssec[s]
+        if (act == "start" || act == "continue") kind = "dev"
+        else if (act ~ /review/) kind = "review"
+        else if (act ~ /^apply/) kind = "apply"
+        else if (act ~ /^merge/) kind = "merge"
+        else kind = act
+        ksec[kind] += sec; kn[kind]++
+        tsec[task] += sec; tn[task]++
+        if (!(task in seen)) { seen[task] = 1; torder[++nt] = task }
+        if (act == "continue") cont[task]++
+        if (act ~ /^rereview/) rr[task]++
+        if (sec > maxs) { maxs = sec; maxl = "step " s " " act " " task }
+        tot += sec; n++
+      }
+      printf "%-8s %5s %8s\n", "kind", "steps", "minutes"
+      split("dev review apply merge", ks, " ")
+      for (i = 1; i <= 4; i++) { k = ks[i]; if (k in kn) printf "%-8s %5d %8.1f\n", k, kn[k], ksec[k] / 60 }
+      printf "%-8s %5d %8.1f\n", "total", n, tot / 60
+      print ""
+      printf "%-6s %5s %8s %9s %10s %9s\n", "task", "steps", "minutes", "continues", "re-reviews", "questions"
+      for (i = 1; i <= nt; i++) {
+        t = torder[i]
+        printf "%-6s %5d %8.1f %9d %10d %9d\n", t, tn[t], tsec[t] / 60, cont[t] + 0, rr[t] + 0, q[t] + 0
+      }
+      print ""
+      if (n) printf "slowest: %s, %.1f min\n", maxl, maxs / 60
+      drv = ""
+      for (i = 1; i <= nt; i++) {
+        t = torder[i]
+        if (cont[t] > 0) drv = drv sprintf("Task %s: %d continue(s), context ran out (split it with hm-change if it repeats); ", t, cont[t])
+        if (rr[t] > 0) drv = drv sprintf("Task %s: %d re-review(s) after a Blocker; ", t, rr[t])
+        if (q[t] > 0) drv = drv sprintf("Task %s: %d question(s), a decision REQUIRE or the task file did not settle; ", t, q[t])
+      }
+      sub(/; $/, "", drv)
+      if (drv == "") print "cost drivers: none (every step ran once)"
+      else print "cost drivers: " drv
+    }' "$f"
+}
+
 case ${1:-} in
   status)    load_project; cmd_status ;;
   plan)      load_project; cmd_plan "${2:-}" ;;
   worktree)  load_project nofetch; cmd_worktree "${2:-}" ;;
+  start-check) load_project; cmd_start_check "${2:-}" ;;
   run-begin) load_project; cmd_run_begin "${2:-}" "${3:-}" ;;
   next)      load_project; cmd_next "${2:-}" ;;
   check)     if [ "${3:-}" = --next ]; then CHECK_NEXT=1; load_project; else load_project nofetch; fi
@@ -1068,6 +1175,7 @@ case ${1:-} in
   hold)      load_project nofetch; shift; cmd_hold "$@" ;;
   release)   load_project nofetch; cmd_release "${2:-}" ;;
   run-end)   load_project nofetch; cmd_run_end ;;
+  report)    load_project nofetch; cmd_report "${2:-}" ;;
   -h|--help|help) usage ;;
   *) usage; exit 1 ;;
 esac
