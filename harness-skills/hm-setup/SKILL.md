@@ -1,6 +1,7 @@
 ---
 name: hm-setup
-description: Steps 2–3 of the harness flow: plan and set up in one go. Use when the user says "설계 시작해" or "하네스 만들어", or asks for an architecture and SPEC from docs/REQUIRE.md or to create the harness. Asks the D-xx decisions, writes DECISIONS.md and SPEC.md, then builds the harness (AGENTS.md, task files, commands, guardrails) from this skill's templates and commits it. Also starts without REQUIRE.md, and refreshes harness files later. Not for changes after setup (hm-change).
+description: 'Steps 2–3 of the harness flow: plan and set up in one go. Use when the user says "설계 시작해" or "하네스 만들어", or asks for an architecture and SPEC from docs/REQUIRE.md or to create the harness. Asks the D-xx decisions, writes DECISIONS.md and SPEC.md, then builds the harness (AGENTS.md, task files, commands, guardrails) from this skill''s templates and commits it. Also starts without REQUIRE.md, and refreshes harness files later. Not for changes after setup (hm-change).'
+argument-hint: '"설계 시작해" | "하네스 만들어" | "하네스 만들어: <요구사항 파일>"'
 ---
 
 # Harness Steps 2–3: Plan and set up

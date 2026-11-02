@@ -1,6 +1,7 @@
 ---
 name: hm-req
-description: Step 1 of the harness flow: requirements. Use when the user says "요구사항 정리 시작해", "요구사항 끝까지 파고들어" / "grill me", or asks to turn an idea, README, PRD or existing repo into requirements. Detects the project profile, asks how work is run, writes .harness/config and docs/REQUIRE.md (a draft with every open point as a question, then an interview in rounds). Changes after setup go through hm-change.
+description: 'Step 1 of the harness flow: requirements. Use when the user says "요구사항 정리 시작해", "요구사항 끝까지 파고들어" / "grill me", or asks to turn an idea, README, PRD or existing repo into requirements. Detects the project profile, asks how work is run, writes .harness/config and docs/REQUIRE.md (a draft with every open point as a question, then an interview in rounds). Changes after setup go through hm-change.'
+argument-hint: '[요구사항 파일] | "요구사항 정리 시작해" | "끝까지 파고들어"'
 ---
 
 # Harness Step 1: Requirements

@@ -1,6 +1,7 @@
 ---
 name: hm-security
-description: Step 6-3 of the harness flow. Use for "보안 점검해", "보안 테스트 해", "보안 리뷰해", "security review", or any request to test or harden security. In a separate session: maps the attack surface, runs the scans, writes security tests against the local components, and writes docs/security/review-<k>.md (findings with evidence and severity, improvements). Works without the harness. Does not fix product code or merge; findings become tasks through hm-change.
+description: 'Step 6-3 of the harness flow. Use for "보안 점검해", "보안 테스트 해", "보안 리뷰해", "security review", or any request to test or harden security. In a separate session: maps the attack surface, runs the scans, writes security tests against the local components, and writes docs/security/review-<k>.md (findings with evidence and severity, improvements). Works without the harness. Does not fix product code or merge; findings become tasks through hm-change.'
+argument-hint: '"보안 점검해" | "보안 점검해: Task <id>"'
 ---
 
 # Harness Step 6-3: Security test and review

@@ -1,6 +1,7 @@
 ---
 name: hm-review
-description: Step 5-1 of the harness flow. Use in a separate session for "Review Task <id>.", "Re-review Task <id>.", "Review all.", "Re-review all.", "Review range A..B." or "이 브랜치 리뷰해" / "Review this branch." (with or without the harness). Read-only review on two axes (Spec: built what was asked; Standards: built the project's way) at the exact commit under review; also for a teammate's pushed branch.
+description: 'Step 5-1 of the harness flow. Use in a separate session for "Review Task <id>.", "Re-review Task <id>.", "Review all.", "Re-review all.", "Review range A..B." or "이 브랜치 리뷰해" / "Review this branch." (with or without the harness). Read-only review on two axes (Spec: built what was asked; Standards: built the project''s way) at the exact commit under review; also for a teammate''s pushed branch.'
+argument-hint: '"Review Task <id>." | "Re-review Task <id>." | "Review all." | "이 브랜치 리뷰해"'
 ---
 
 # Harness Step 5-1: Review

@@ -1,6 +1,7 @@
 ---
 name: hm-audit
-description: Step 6-2 of the harness flow. Use for "누락 검토해" (or "누락 검토해: <requirements doc>", also without the harness) or a traceability check. Maps every requirement and accepted change request to tasks and tests on the integration branch, finds gaps and source violations, lists deepening candidates in the most-changed code and runs a retro on recurring findings; reports before fixing. Any time, also mid-project.
+description: 'Step 6-2 of the harness flow. Use for "누락 검토해" (or "누락 검토해: <requirements doc>", also without the harness) or a traceability check. Maps every requirement and accepted change request to tasks and tests on the integration branch, finds gaps and source violations, lists deepening candidates in the most-changed code and runs a retro on recurring findings; reports before fixing. Any time, also mid-project.'
+argument-hint: '"누락 검토해" | "누락 검토해: <요구사항 문서>"'
 ---
 
 # Harness Step 6-2: Traceability audit

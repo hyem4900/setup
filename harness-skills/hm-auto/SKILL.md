@@ -1,6 +1,7 @@
 ---
 name: hm-auto
-description: Runs harness steps 4–5 automatically in one chat: the orchestrator starts every dev, review, apply-review and merge step in a fresh sub-agent (up to PARALLEL at once, each task in its own worktree) and checks each result with scripts/harness-state.sh; a demo or a question holds only its own task. Use when the user says "자동으로 진행해", "Task 1~3 자동으로", "데모 확인 없이 자동으로", "자동 실행 상태 보여줘", or asks to run the harness automatically.
+description: 'Runs harness steps 4–5 automatically in one chat: the orchestrator starts every dev, review, apply-review and merge step in a fresh sub-agent (up to PARALLEL at once, each task in its own worktree) and checks each result with scripts/harness-state.sh; a demo or a question holds only its own task. Use when the user says "자동으로 진행해", "Task 1~3 자동으로", "데모 확인 없이 자동으로", "자동 실행 상태 보여줘", or asks to run the harness automatically.'
+argument-hint: '"자동으로 진행해" | "Task 1~3 자동으로" | "데모 확인 없이 자동으로" | "자동 실행 상태 보여줘"'
 ---
 
 # Harness: automatic run (orchestrator)

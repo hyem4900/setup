@@ -156,6 +156,7 @@ Root (메인 작업 트리, INTEGRATION 브랜치)
 
 스킬 파일: `hm-*/SKILL.md` 9개 (수동 8개 + hm-auto). 일부 경우에만 필요한 내용은 따로 두고 그때만 읽음: hm-dev의 `references/tdd.md`(테스트 먼저 루프), `references/debug.md`(디버그 절차), `references/review-and-merge.md`(리뷰 반영·병합. 개발 세션은 읽지 않음), `references/develop-without-harness.md`(하네스 없이 개발할 때의 입력 표와 시작 절차), hm-review·hm-audit·hm-load-test·hm-security·hm-change의 `references/inputs.md`(하네스 없이 돌 때 각 입력의 대체 파일 표), hm-setup의 `references/setup.md`(셋업, 설계가 끝난 뒤 읽음)와 `references/no-require.md`(REQUIRE 없이 시작할 때), 여러 스킬이 같이 쓰는 `references/question-format.md`(질문 양식)와 `references/no-harness.md`(하네스 없이 돌 때의 규칙. 원본은 `harness-skills/_shared/`, `sync-shared.sh`로 펼침), hm-auto의 `references/stop-reasons.md`(멈췄을 때만 읽음), hm-req의 `references/interview.md`(§11 질문 양식과 인터뷰 절차. 초안의 §11을 쓸 때부터 읽음)와 `templates/REQUIRE.template.md`·`templates/config.template`(hm-setup도 읽음). 사용하는 에이전트의 스킬 경로에 폴더째 복사함.
 - Codex: `~/.codex/skills/hm-*`
+- 입력 힌트: Claude Code는 `/hm-dev`처럼 입력하면 SKILL.md의 `argument-hint`(트리거 문장 예)를 보여 줌. Codex는 `agents/openai.yaml`의 짧은 설명과 기본 프롬프트(`Use $hm-dev: Start Task 1.`)를 씀. Codex 복사본에서는 `argument-hint` 줄을 지움 (Codex frontmatter에 없는 필드)
 - Claude Code: `~/.claude/skills/` 또는 프로젝트의 `.claude/skills/`
 - 복사본이라서 setup 폴더에서 스킬을 고치면 다시 복사해야 반영됨. 복사 명령은 아래 "자동 실행 > 설치"에 있음.
 
@@ -826,7 +827,7 @@ target: `<id>`, `<id>,<id>`, `N-M`(숫자 ID), `all`, `review-all`. 환경 변�
 스킬 폴더를 Codex 스킬 경로로 복사함. setup에서 스킬을 고치면 같은 명령으로 다시 복사해야 함 (이 저장소 루트에서, Git Bash). Claude Code도 쓰면 `~/.claude/skills/`에도 같은 방식으로 복사함:
 
 ```
-for d in harness-skills/hm-*; do rm -rf ~/.codex/skills/"${d##*/}"; cp -r "$d" ~/.codex/skills/; done
+for d in harness-skills/hm-*; do rm -rf ~/.codex/skills/"${d##*/}"; cp -r "$d" ~/.codex/skills/; sed -i '/^argument-hint:/d' ~/.codex/skills/"${d##*/}"/SKILL.md; done
 for d in harness-skills/hm-*; do rm -rf ~/.claude/skills/"${d##*/}"; cp -r "$d" ~/.claude/skills/; done
 ```
 

@@ -1,6 +1,7 @@
 ---
 name: hm-change
-description: Turns a new or changed requirement after setup (without the harness: a change record and task files only) into a change record, updated REQUIRE, SPEC and DECISIONS, and new or dropped tasks: a feature, a change, a bug, demo feedback, a removal, technical work, a spike, docs, security findings or a task split. Use when the user says "요구사항 추가해: ...", "요구사항 변경해: ...", "버그 등록해: ...", "수정 요청: ...", "보안 리뷰 반영해: <file>", "Task N 나눠줘".
+description: 'Turns a new or changed requirement after setup (without the harness: a change record and task files only) into a change record, updated REQUIRE, SPEC and DECISIONS, and new or dropped tasks: a feature, a change, a bug, demo feedback, a removal, technical work, a spike, docs, security findings or a task split. Use when the user says "요구사항 추가해: ...", "요구사항 변경해: ...", "버그 등록해: ...", "수정 요청: ...", "보안 리뷰 반영해: <file>", "Task N 나눠줘".'
+argument-hint: '"요구사항 추가해: ..." | "요구사항 변경해: ..." | "버그 등록해: ..." | "Task <id> 나눠줘"'
 ---
 
 # Harness: Change request

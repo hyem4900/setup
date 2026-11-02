@@ -1,0 +1,4 @@
+interface:
+  display_name: "hm-dev"
+  short_description: "Develop a task, apply a review, merge, debug"
+  default_prompt: "Use $hm-dev: Start Task 1."

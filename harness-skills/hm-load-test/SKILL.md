@@ -1,6 +1,7 @@
 ---
 name: hm-load-test
-description: Step 6-1 of the harness flow. Use for "부하 테스트 해", "성능 테스트 해", or a load test or benchmark against the SPEC §10 targets (without the harness: from a document, or asked). Measures, finds bottlenecks, fixes, re-measures and writes docs/LOAD_TEST.md. Load test when HAS_LOAD=1; single-caller benchmarks (§10b) otherwise. Recommends a tool if SPEC names none.
+description: 'Step 6-1 of the harness flow. Use for "부하 테스트 해", "성능 테스트 해", or a load test or benchmark against the SPEC §10 targets (without the harness: from a document, or asked). Measures, finds bottlenecks, fixes, re-measures and writes docs/LOAD_TEST.md. Load test when HAS_LOAD=1; single-caller benchmarks (§10b) otherwise. Recommends a tool if SPEC names none.'
+argument-hint: '"부하 테스트 해" | "성능 테스트 해"'
 ---
 
 # Harness Step 6-1: Performance test

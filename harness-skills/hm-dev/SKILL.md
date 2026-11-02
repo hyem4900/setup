@@ -1,6 +1,7 @@
 ---
 name: hm-dev
-description: Steps 4 and 5-2 of the harness flow: the development session. Use for "Start Task <id>." / "Continue Task <id>." (one task on its own branch, test-first, ending in a demo report), or "개발해: ..." without the harness; applying a review of any shape ("리뷰 반영해: ...", "Apply these review comments: <file>"); "Merge Task <id>." / "Merge branch <branch>." (the only step that integrates) and "Task <id> 되돌려" / "Revert Task <id>."; and debugging ("디버깅해: ...", "원인 찾아줘: ...", "왜 느린지 찾아줘").
+description: 'Steps 4 and 5-2 of the harness flow: the development session. Use for "Start Task <id>." / "Continue Task <id>." (one task on its own branch, test-first, ending in a demo report), or "개발해: ..." without the harness; applying a review of any shape ("리뷰 반영해: ...", "Apply these review comments: <file>"); "Merge Task <id>." / "Merge branch <branch>." (the only step that integrates) and "Task <id> 되돌려" / "Revert Task <id>."; and debugging ("디버깅해: ...", "원인 찾아줘: ...", "왜 느린지 찾아줘").'
+argument-hint: '"Start Task <id>." | "Continue Task <id>." | "개발해: ..." | "리뷰 반영해: <파일>" | "Merge Task <id>." | "디버깅해: ..."'
 ---
 
 # Harness Steps 4 and 5-2: Develop, apply review, integrate

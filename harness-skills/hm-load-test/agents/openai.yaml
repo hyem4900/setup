@@ -1,0 +1,4 @@
+interface:
+  display_name: "hm-load-test"
+  short_description: "Load test or benchmark against SPEC §10"
+  default_prompt: "Use $hm-load-test: 부하 테스트 해"
