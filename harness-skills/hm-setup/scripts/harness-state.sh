@@ -822,7 +822,11 @@ cmd_run_begin() {
   if ! mkdir "$LOCK" 2>/dev/null; then
     fail "lock held: another hm-auto run is active ($(cat "$LOCK/info" 2>/dev/null)). If no other session is running it, call run-end."
   fi
-  RUN_ID=$(date +%Y%m%d-%H%M%S)
+  # Two runs can start in the same second (fast machines, scripted runs): never share a folder,
+  # or the second run overwrites the first one's step logs and mixes its summary.tsv rows.
+  local base n=1
+  base=$(date +%Y%m%d-%H%M%S); RUN_ID=$base
+  while [ -e "artifacts/runs/$RUN_ID" ]; do n=$((n + 1)); printf -v RUN_ID '%s-%02d' "$base" "$n"; done
   echo "started $(date '+%Y-%m-%d %H:%M:%S'), target $TARGET, run $RUN_ID" > "$LOCK/info"
   rm -rf "$STEPS_DIR" "$HOLD_DIR"; mkdir -p "$STEPS_DIR"
   { echo "TARGET=$TARGET"; echo "RUN_ID=$RUN_ID"; echo "STEPS=0"; if [ "${2:-}" = --no-demo ]; then echo "DEMO_GATE=0"; else echo "DEMO_GATE=1"; fi; } > "$RUN_ENV"

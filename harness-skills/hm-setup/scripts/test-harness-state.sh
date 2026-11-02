@@ -188,6 +188,12 @@ OUT=$(cat artifacts/runs/*/summary.tsv 2>/dev/null); has "summary.tsv also recor
 run report; has "report during a run: the active run, with its cost drivers" "Task 0: 1 continue(s)" "Task 0: 1 question(s)"
 run report no-such-run; rc_is "report on an unknown run fails" 1
 run run-end
+# a run that starts in a second whose folder already exists gets its own folder
+taken=$(date +%Y%m%d-%H%M%S); mkdir -p "artifacts/runs/$taken"
+run run-begin 0 --no-demo; got=$(printf '%s
+' "$OUT" | sed -n 's/^run=//p')
+if [ -n "$got" ] && [ "$got" != "$taken" ] && [ -d "artifacts/runs/$got" ]; then ok "run-begin never reuses a run folder ($got)"; else bad "run-begin reused or lost the run folder (taken=$taken got=$got)" "$OUT"; fi
+run run-end
 # a continue is handed out even with a dirty tree (a question leaves work uncommitted)
 git checkout -q main; echo dirty > dirty.txt
 run run-begin 0 --no-demo; run next; rc_is "dirty tree still allows continue" 0; has "continue despite dirty" "action=continue"
