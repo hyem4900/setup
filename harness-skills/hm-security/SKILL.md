@@ -6,7 +6,7 @@ argument-hint: '"보안 점검해" | "보안 점검해: Task <id>"'
 
 # Harness Step 6-3: Security test and review
 
-Talk to me in CHAT_LANG and write documents in DOC_LANG (both in .harness/config; Korean and English if unset). Code, identifiers and the fixed tokens scripts parse stay in English. Ask questions in the question format of AGENTS.md ("Ask the user when"): ❓ question with a bold topic, then ➡️ your recommendation.
+Talk to me in CHAT_LANG and write documents in DOC_LANG (both in .harness/config; Korean and English if unset). Code, identifiers and the fixed tokens scripts parse stay in English. Ask questions in the question format of AGENTS.md ("Ask the user when"): the bold topic line, the open question, 🔍 with what you found, then ➡️ with your recommendation and its reason.
 
 You did not write this code. Look at it the way an attacker would, and report the way a reviewer does: evidence first, no guesses.
 You do not fix product code. You add security tests, scan, and write the review; the fixes go through hm-change as tasks.
@@ -28,7 +28,7 @@ Without the harness (no .harness/config): read references/no-harness.md and refe
 From the code, not from SPEC:
 - Entry points: every route or handler, CLI command and flag, message consumer, file or upload input, webhook, and scheduled job that reads outside data. For each: authentication required, roles allowed, inputs.
 - Assets: where passwords, tokens, API keys, personal data and secrets live (tables, files, caches, logs, backups, fixtures, seed scripts).
-- Trust boundaries: browser ↔ server, component ↔ component, server ↔ database and third parties.
+- Trust boundaries: browser ↔ server, component ↔ component, server ↔ database and third parties, the product ↔ a language model.
 Compare with SPEC §4 and §12a, or their stand-ins (with none, skip the comparison and say so). An entry point SPEC does not list, or one with weaker protection than SPEC says, is a finding.
 
 ## 2. Scans
@@ -52,6 +52,7 @@ A. Password storage (rainbow tables and offline cracking)
 - Verification uses the library's verify function (constant time), not string comparison.
 B. Sign-in and credentials
 - Repeated failed sign-ins are slowed or blocked; reset and code entry too.
+- Credential stuffing: one wrong password on each of many accounts from one source is slowed or blocked too, not only repeats on one account.
 - An unknown account and a wrong password give the same message (no account enumeration).
 - Reset and invite tokens are random, single-use and expire; sessions rotate on sign-in and end on sign-out.
 - Tokens and API keys are stored hashed.
@@ -59,12 +60,13 @@ C. Access control
 - Call each entry point with no session, with another user's session, and with a lower role.
 - Change object IDs in requests (another user's record). Send fields the user must not set (role, owner, price).
 D. Injection and input
-- SQL or NoSQL, shell command, path traversal, template injection, header injection, unsafe deserialization.
-- Oversized bodies, deeply nested data, inputs that make a regex backtrack.
+- SQL or NoSQL, shell command (shell characters, and arguments from input that start with `-`), path traversal (`../`, absolute paths, encoded and backslash separators), template injection, header injection, unsafe deserialization.
+- Oversized bodies, deeply nested data, inputs that make a regex backtrack: refused or bounded without exhausting the component.
 E. Web (HTTP components and screens)
 - Stored and reflected XSS: the payload is shown as text, not run.
 - CSRF on state-changing requests with cookie sessions. CORS with a foreign origin and credentials.
 - Security headers present; cookie flags HttpOnly, Secure, SameSite; no open redirects.
+- Clickjacking: a page where a signed-in user acts cannot be framed by another origin (CSP `frame-ancestors` or the frame options header in the response).
 - SSRF: if the app fetches URLs, internal addresses (127.0.0.1, private ranges, cloud metadata addresses) are refused.
 F. Files: upload type and size checks, storage outside served paths, sanitized names, downloads confined to their folder.
 G. Secrets and configuration: none in the repo or its history; the production-like commands do not run in debug mode; no default credentials; generic error pages.
@@ -72,7 +74,8 @@ H. Errors and logs: trigger errors and failed sign-ins. Logs record the event, w
 I. Between components: internal endpoints reject unauthenticated calls or are not reachable from outside; database accounts have only the rights they need.
 J. Dependencies and supply chain: the scan results; lockfiles committed; unmaintained or unnecessary packages; install-time scripts.
 K. Data protection: what each SEC-xx demands (encryption at rest, retention, deletion, export).
-L. Resource abuse: rate limits, page size caps, request size limits, timeouts.
+L. Resource abuse: rate limits, page size caps, request size limits, timeouts; enough requests to show each limit holds, never a flood. Network-level floods are out of scope: record who handles them (SPEC §12) under Scope.
+M. Language model calls (if the product sends input or fetched content to a model): put instructions in user input, uploaded files and fetched pages (prompt injection). The model does not reveal its instructions, secrets or another user's data, does not call a tool beyond the current user's rights, and takes no hard-to-undo action without the user's confirmation; its output is shown as text and never run.
 
 ## 4. Earlier findings
 For every finding in earlier reviews in docs/security/ that is not `Fixed` or `Accepted risk`: re-run its reproducing test or steps, and record Fixed (with the commit that fixed it) or still open.

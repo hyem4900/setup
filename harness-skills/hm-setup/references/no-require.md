@@ -26,15 +26,15 @@ Three keys are my choice, so ask them, each in plain words with your recommendat
 Fill `templates/REQUIRE.template.md` from the hm-req skill folder into docs/REQUIRE.md:
 - §1 starts with `Written by hm-setup from <source> without the requirements interview.`
 - One R-xx per requirement the source states, with `Source: <file> §x`. Priority: Must when the source says so or the one scenario that must work needs it, else Should. Every Must gets Given/When/Then acceptance criteria with concrete values and full IDs (R-01/AC-1); Should and Could say `when tasked`.
-- Non-functional requirements only with a number; §9 Glossary only for terms that are ambiguous or have synonyms in the source; §10 the security rows the source implies, plus the baseline rows that apply (passwords, sign-in, users' own data, secrets, untrusted input), marked [ASSUMPTION].
-- A value or a rule the source leaves open gets a `[Q-<k>]` marker where it is used and a §11 block: the question, `- Why:`, `- Affects:`, `- Recommended:`, an empty `- answer:`.
+- Non-functional requirements only with a number; §9 Glossary only for terms that are ambiguous or have synonyms in the source; §10 the security rows the source implies, plus the baseline rows that apply (passwords, sign-in, users' own data, secrets, untrusted input, user text on screens, cookie sessions, requests to URLs from input, framing of signed-in screens, request limits, language model input), marked [ASSUMPTION].
+- A value or a rule the source leaves open gets a `[Q<k>]` marker (e.g. `[Q3]`) where it is used and a block in docs/QUESTION.md (from `templates/QUESTION.template.md` in the hm-req skill folder): `## 🔴 **Q1 — <topic>**`, the question in the question format (❓ line, 🔍, ➡️ with its reason), `🅰️ 답변:` with an empty code block below it, and an empty `✅ 결정:` (labels in CHAT_LANG).
 - Task files from R1: each `T<id>/AC-n` criterion maps to an R-xx/AC, or becomes one.
 
 ## R4. One round of questions
-Send one message: the profile table (key, value, evidence, what it means for the project), then the questions, numbered, in the question format of A2, each worded so that "yes" accepts your recommendation: the three choices from R2 (when the config is missing), then the open Q-xx, highest impact first, at most 5. Questions last.
+Send one message: the profile table (key, value, evidence, what it means for the project), then the questions, numbered, in the question format of A2: the three choices from R2 (when the config is missing), then the open Q-xx, highest impact first, at most 5. Questions last.
 After my answer:
 - Write .harness/config from `templates/config.template` in the hm-req skill folder, with the values settled.
-- Apply every answer in REQUIRE.md (`- answer:` and `- decision:` lines, each `[Q-xx]` marker replaced by the decided value). Unanswered and lower-impact questions adopt their recommendation as [ASSUMPTION]. No `[Q-xx]` marker is left.
+- Apply every answer: in QUESTION.md the answer in the code block and the decision after `✅ 결정:` (the rest of the block unchanged), in REQUIRE.md each `[Q<k>]` marker replaced by the decided value, without an [ASSUMPTION] tag. Unanswered and lower-impact questions adopt their recommendation as [ASSUMPTION]. No `[Q-xx]` marker is left.
 - Go on to Part A without stopping. Its A2 round of D-xx questions is the only other stop.
 
 ## At Finish

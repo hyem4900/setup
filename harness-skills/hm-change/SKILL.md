@@ -76,7 +76,7 @@ Clarify first when the request is not yet clear enough to write ACs or "Done whe
 Question format (every question in this skill, including D-xx in the confirmation): references/question-format.md in this skill's folder, or the same format in AGENTS.md "Ask the user when".
 
 Clarifying, in rounds:
-- A round is the **frontier**: every open question whose answer does not wait on another open question, in one message, at most 5, highest impact first, each numbered in the format above. Word each one so that "yes" accepts the recommendation; I may answer by number ("1 yes, 2 B").
+- A round is the **frontier**: every open question whose answer does not wait on another open question, in one message, at most 5, highest impact first, each numbered in the format above. I may answer in my own words or by number ("1 추천대로, 2 B").
 - Never ask what REQUIRE.md, SPEC.md, the code or the data can answer. Look it up and state what you found with its evidence.
 - The follow-ups an answer opened (dependent decisions, implied edge cases) lead the next round.
 - If an answer contradicts REQUIRE.md, a DR-xx, a Done task's behavior or an earlier answer, say so with the evidence and ask which one wins. If it is vague, ask for a concrete value or example.

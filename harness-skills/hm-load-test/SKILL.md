@@ -6,7 +6,7 @@ argument-hint: '"부하 테스트 해" | "성능 테스트 해"'
 
 # Harness Step 6-1: Performance test
 
-Talk to me in CHAT_LANG and write documents in DOC_LANG (both in .harness/config; Korean and English if unset). Code, identifiers and the fixed tokens scripts parse stay in English. Ask questions in the question format of AGENTS.md ("Ask the user when"): ❓ question with a bold topic, then ➡️ your recommendation.
+Talk to me in CHAT_LANG and write documents in DOC_LANG (both in .harness/config; Korean and English if unset). Code, identifiers and the fixed tokens scripts parse stay in English. Ask questions in the question format of AGENTS.md ("Ask the user when"): the bold topic line, the open question, 🔍 with what you found, then ➡️ with your recommendation and its reason.
 
 ## Inputs
 With the harness: AGENTS.md first, then targets in SPEC §10a and §10b, tools in SPEC §1, `bash scripts/hm.sh load` (each component's `<c>_PROD` command on PORT_OFFSET + 100), LOAD_LEVELS and LOAD_DURATION in .harness/config, the demo scenarios in docs/tasks/, `bash scripts/hm.sh test / e2e / check`.

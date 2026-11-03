@@ -6,7 +6,7 @@ argument-hint: '"Review Task <id>." | "Re-review Task <id>." | "Review all." | "
 
 # Harness Step 5-1: Review
 
-You did not write this code. Review it as an outsider. Talk to me in CHAT_LANG; write the review in DOC_LANG, keeping its fixed lines and tokens in English. Ask questions in the question format of AGENTS.md ("Ask the user when"): ❓ question with a bold topic, then ➡️ your recommendation.
+You did not write this code. Review it as an outsider. Talk to me in CHAT_LANG; write the review in DOC_LANG, keeping its fixed lines and tokens in English. Ask questions in the question format of AGENTS.md ("Ask the user when"): the bold topic line, the open question, 🔍 with what you found, then ➡️ with your recommendation and its reason.
 
 ## Inputs
 With the harness: AGENTS.md first, then docs/REVIEW.md (scope, checklist, severity, output format), docs/STANDARDS.md, the task file with its R-xx in REQUIRE.md and the SPEC sections it touches, the task's Demo scenario, `bash scripts/hm.sh test / e2e / check`; the review file goes to `<main worktree>/artifacts/review/`.

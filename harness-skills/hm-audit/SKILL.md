@@ -6,7 +6,7 @@ argument-hint: '"누락 검토해" | "누락 검토해: <요구사항 문서>"'
 
 # Harness Step 6-2: Traceability audit
 
-Talk to me in CHAT_LANG and write documents in DOC_LANG (both in .harness/config; Korean and English if unset). Code, identifiers and the fixed tokens scripts parse stay in English. Ask questions in the question format of AGENTS.md ("Ask the user when"): ❓ question with a bold topic, then ➡️ your recommendation.
+Talk to me in CHAT_LANG and write documents in DOC_LANG (both in .harness/config; Korean and English if unset). Code, identifiers and the fixed tokens scripts parse stay in English. Ask questions in the question format of AGENTS.md ("Ask the user when"): the bold topic line, the open question, 🔍 with what you found, then ➡️ with your recommendation and its reason.
 
 ## Inputs
 With the harness: AGENTS.md first, then docs/REQUIRE.md (R-xx, AC, DR, NFR, SEC), docs/tasks/, docs/SPEC.md and REQUIRE §5 for contracts, seams and compatibility, `bash scripts/hm.sh test / e2e / check`, `bash scripts/harness-state.sh status`.
@@ -24,10 +24,10 @@ Without the harness (no .harness/config): read references/no-harness.md and refe
    - the tests that cover it, confirmed by reading the test code, not only by name
    - whether those tests passed in step 1
    - for NFRs: where it was measured (LOAD_TEST.md load or benchmark results, a test, or nowhere). A latency target with no measurement is Untested.
-   - for SEC-xx: the security test that proves it, or the latest docs/security/review-<k>.md that checked it. A SEC-xx with neither is Untested. If docs/security/ is empty, or the latest review is older than the last merged task that touched sign-in, credentials, access checks or input handling, list "run hm-security" under Gaps. Findings in the latest review that are still Open without a task are Gaps too.
+   - for SEC-xx: the security test that proves it, or the latest docs/security/review-<k>.md that checked it. A SEC-xx with neither is Untested. If docs/security/ is empty, or the latest review is older than the last merged task that touched sign-in, credentials, access checks, input handling, showing input on screens, requests to URLs from input or language model calls, list "run hm-security" under Gaps. Findings in the latest review that are still Open without a task are Gaps too.
 3. Check the original sources against the implementation:
    - Each file in REQ_SOURCES, statement by statement
-   - Each decision in REQUIRE §11 Questions (older projects: the DISCOVERY.md Interview Log)
+   - Each decision in docs/QUESTION.md (older projects: REQUIRE §11 Questions, or the DISCOVERY.md Interview Log)
    - Each Accepted change request in docs/changes/: its requirement changes are in REQUIRE.md and its tasks are Done
    - Any statement that is not implemented and not in REQUIRE Out of scope is a violation.
 4. (GREENFIELD=0) Check REQUIRE §5 compatibility constraints: each has a characterization or E2E test that passes.

@@ -134,12 +134,16 @@ The few threats that matter most for this product (at most 5 rows in FULL, 3 in 
 One row per area that applies. For an area where the docs/STANDARDS.md Security baseline is enough, write `baseline` instead of restating it; write details only where the project needs more or different. Areas (skip those that do not apply, in one line):
 - Password storage (if the product stores passwords): a slow, salted, adaptive hash (Argon2id preferred; scrypt or bcrypt where the stack lacks it) with a unique random salt per password, its parameters (memory, iterations, parallelism or cost) meeting current OWASP Password Storage guidance, and rehash-on-login when parameters rise. Never plain text, reversible encryption, or a fast or unsalted hash (MD5, SHA-1, plain SHA-256). Prefer an external identity provider when it fits.
 - Other credentials: tokens and keys from a cryptographically secure random generator (at least 128 bits), stored hashed, compared in constant time, expiring; reset and invite tokens single-use.
-- Sign-in abuse: rate limits or backoff on sign-in, reset and code entry; messages that do not reveal whether an account exists.
+- Sign-in abuse: rate limits or backoff on sign-in, sign-up, reset and code entry, per account and per source address (credential stuffing: one try on each of many accounts); messages that do not reveal whether an account exists; a check against known breached passwords and multi-factor sign-in when a SEC-xx asks.
 - Sessions and tokens: lifetime, rotation on sign-in, invalidation on sign-out; cookies HttpOnly, Secure, SameSite.
-- Access control: deny by default; the role matrix; ownership checked on the server for every object.
-- Input and injection: parameterized queries, no shell from input, path confinement, size limits, safe parsers.
-- Web (HAS_UI=1 or HTTP): output encoding, CSRF protection for cookie sessions, CORS allow-list, security headers (CSP, HSTS in production, frame options), no open redirects, SSRF allow-list for outgoing requests.
-- Secrets: where each lives per environment; none in the repo; SECRET_PATTERN.
+- Access control: deny by default; the role matrix, each role checked on the server; ownership checked on the server for every object.
+- Input and injection: parameterized queries, programs run with an argument list (no shell from input), path confinement (canonical path inside the allowed folder), size limits, safe parsers.
+- Files (uploads and downloads): allowed types and sizes, where files are stored (outside served and executable paths), how they are named and served.
+- Web (HAS_UI=1 or HTTP): output encoding, CSRF protection for cookie sessions, CORS allow-list, security headers (CSP, HSTS in production, frame protection against clickjacking), no open redirects.
+- Outgoing requests (any component that requests a URL or host from input: link previews, webhooks, imports by URL): SSRF allow-list; internal and metadata addresses refused, also after redirects.
+- Language model calls (if the product sends input or fetched content to a model): what the model may read and do (tools, data scope), which actions need the user's confirmation, how its output is shown; no secrets in prompts (prompt injection).
+- Availability: request size limits and rate limits in the app (which endpoints, what limits); who handles floods at the network level (the hosting, a CDN, or `not handled` with the reason).
+- Secrets: where each lives per environment; none in the repo or in code shipped to the client; SECRET_PATTERN.
 - Errors and logs: generic errors to users; no secrets, passwords, tokens or personal data in logs; security events logged.
 - Between components: how internal calls are authenticated or confined; least-privilege database accounts; internal ports not exposed.
 - Data protection: encryption at rest or field-level encryption when a SEC-xx requires it; retention and deletion.
