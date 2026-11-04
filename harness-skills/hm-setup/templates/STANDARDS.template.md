@@ -1,6 +1,6 @@
 # Coding Standards
 
-How code is built in this project. The reviewer checks every diff against this file (docs/REVIEW.md, Standards axis); the developer reads the section AGENTS.md "Standards" points to before writing that kind of code.
+How code is built in this project. The reviewer checks every diff against this file (the review guide's Standards axis); the developer reads the section AGENTS.md "Standards" points to before writing that kind of code.
 Order of precedence: Project rules, then the baselines, then the smell baseline. A rule a linter or a grep can enforce belongs in `bash scripts/hm.sh check` (LINT_CMD or a guardrail pattern) instead of here: this file holds what needs judgement.
 
 ## Security baseline

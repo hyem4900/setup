@@ -1,0 +1,4 @@
+interface:
+  display_name: "hm-explain"
+  short_description: "6-Explain the built system in docs/EXPLAIN.md"
+  default_prompt: "Use $hm-explain: 설명 문서 만들어"

@@ -4,7 +4,7 @@
 #   bash <hm-setup skill folder>/scripts/install.sh
 # It copies scripts/hm.sh and scripts/harness-state.sh (always, unchanged), and writes or appends
 # everything else only where it is missing: AGENTS.md (or its harness section), the agent entry
-# files from AGENT_FILES, docs/REVIEW.md, docs/STANDARDS.md, docs/tasks/_template.md, .githooks/, .gitignore and
+# files from AGENT_FILES, docs/STANDARDS.md, docs/tasks/_template.md, .githooks/, .gitignore and
 # .gitattributes lines, the commands section of .harness/config, .harness/guardrail-samples.
 # It never overwrites a file that already exists. It prints one line per file.
 set -u -o pipefail
@@ -73,7 +73,6 @@ for f in $agent_files; do
   say wrote "$f"
 done
 
-copy_new "$T/REVIEW.template.md" docs/REVIEW.md
 copy_new "$T/STANDARDS.template.md" docs/STANDARDS.md
 copy_new "$T/task.template.md" docs/tasks/_template.md
 copy_new "$T/guardrail-samples.template" .harness/guardrail-samples

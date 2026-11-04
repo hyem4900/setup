@@ -7,7 +7,8 @@ Project profile: see .harness/config (MODE, SESSION_PER_TASK, PROTECTED, HAS_SER
 2. Your task file docs/tasks/<id>.md (status, scope, Log, Notes for Next Session)
 3. docs/SPEC.md sections referenced by that task
 4. docs/REQUIRE.md entries for the task's R-xx
-5. Before exploring the code: the codebase notes `artifacts/notes/codebase.md` in the main worktree (the parent of `git rev-parse --path-format=absolute --git-common-dir`), if they exist. They describe the commit on their `Commit:` line; check `git log` since then.
+5. Before your first command: the environment notes ("Environment notes" below).
+6. Before exploring the code: the codebase notes `artifacts/notes/codebase.md` in the main worktree (the parent of `git rev-parse --path-format=absolute --git-common-dir`), if they exist. They describe the commit on their `Commit:` line; check `git log` since then.
 Read DECISIONS.md, the `✅ 결정` (Decision) lines in docs/QUESTION.md, not its recommendations (older projects: REQUIRE §11) and docs/changes/ only when SPEC does not answer a question. `bash scripts/harness-state.sh status` shows every task's status and next action when you need it.
 The task workflow, the report format and the Definition of Done are in the hm-dev skill, which every task runs through.
 
@@ -57,6 +58,9 @@ Its Project rules apply everywhere; they are short, so read them once per task.
 - Leaving background processes running at the end of a session, except a demo I asked for (`bash scripts/hm.sh dev-bg`)
 - Weakening, disabling or working around a security control (SPEC §12, the docs/STANDARDS.md Security baseline, a validation, a header, an access check) to make something work or a test pass
 - Committing a real secret, or marking a real one with `harness:allow-secret`
+
+## Environment notes
+Environment notes: `artifacts/notes/env.md` in the main worktree (the parent of `git rev-parse --path-format=absolute --git-common-dir`) holds what sessions learned about this machine, not about the product: which shell to call, a tool's path, a command that needs approval, a tool that is missing and what replaced it. Read it before your first command, if it exists. When you solve such a problem, append one line: `<date> <the problem> -> <the fix that worked>`. Only fixes you saw work; no secrets, tokens or personal data; at most about 40 lines (replace a line that turned out wrong instead of adding a second one). It is ignored by git: it describes this machine only.
 
 ## Long files
 Long files: write them with the host's file-editing tool, or in parts of at most about 20 KB each; never pass a whole document as one shell command argument. Windows refuses a command line over about 32,000 characters, and the whole text then has to be generated again.

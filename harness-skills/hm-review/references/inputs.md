@@ -4,7 +4,7 @@ Read this with references/no-harness.md when `.harness/config` does not exist. F
 
 | Input | Harness file | Stand-ins to look for | Fallback |
 |---|---|---|---|
-| Review guide (scope, checklist, severity, output format) | docs/REVIEW.md | — | `templates/REVIEW.template.md` in the hm-setup skill folder (`../hm-setup/` from this skill's folder). Read it there; never copy it into the repository |
+| Review guide (scope, checklist, severity, output format) | references/review-guide.md in this skill's folder (with or without the harness) | — | — |
 | Standards | docs/STANDARDS.md (older projects: AGENTS.md "Security" and "Backend baseline") | CONTRIBUTING.md, CODING_STANDARDS.md, a style guide, the lint configuration | `templates/STANDARDS.template.md` in the hm-setup skill folder |
 | Spec | the task file, its R-xx in REQUIRE.md, the SPEC sections it touches | the pull request description, the issue the commits reference, a design doc | none: skip the Spec axis, write `Spec: skipped (no spec found)` in the review, and the AC coverage table becomes N/A |
 | Demo scenario | the task file's Demo scenario | numbered steps in the spec stand-in | none: `skipped: no demo scenario` |

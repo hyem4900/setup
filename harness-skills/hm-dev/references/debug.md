@@ -4,7 +4,7 @@ Follow AGENTS.md (languages, question format, forbidden actions), or without the
 
 ## Where the fix goes
 - Inside a task (Develop): work on that task's branch and worktree; the fix is part of the task.
-- Asked directly with no task: diagnose only (Phases 1–4) on the integration head, in a temporary detached worktree as docs/REVIEW.md "Where to run" describes (name `debug-<slug>`; with WORKTREES=0, the main worktree if it is clean and on INTEGRATION). Commit nothing and leave the tree as you found it, then report the root cause and the minimal repro and recommend registering it as a bug ("버그 등록해: ..." through hm-change) so the fix runs as a task.
+- Asked directly with no task: diagnose only (Phases 1–4) on the integration head, in a temporary detached worktree as references/review-guide.md "Where to run" (in this skill's folder) describes (name `debug-<slug>`; with WORKTREES=0, the main worktree if it is clean and on INTEGRATION). Commit nothing and leave the tree as you found it, then report the root cause and the minimal repro and recommend registering it as a bug ("버그 등록해: ..." through hm-change) so the fix runs as a task.
 - Asked directly without the harness: diagnose (Phases 1–4) on the current branch, in the current worktree if it is clean, else in a temporary detached worktree in the OS temp directory (`git worktree add --detach <dir> HEAD`, removed at the end). Report the root cause and the minimal repro, then ask whether to fix it on the current branch: if I say yes, do Phases 5–6 there and commit as `fix: <summary>`.
 - Throwaway scripts, captured inputs and prototypes live under artifacts/debug/<task id or slug>/ (ignored by git). Never commit them.
 

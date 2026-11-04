@@ -28,7 +28,8 @@ sync() {
   done
 }
 
-sync question-format.md hm-req hm-setup hm-change hm-dev hm-review hm-audit hm-security hm-load-test
-sync no-harness.md hm-dev hm-review hm-change hm-audit hm-security hm-load-test
+sync question-format.md hm-req hm-setup hm-change hm-dev hm-review hm-audit hm-security hm-load-test hm-explain
+sync no-harness.md hm-dev hm-review hm-change hm-audit hm-security hm-load-test hm-explain
+sync review-guide.md hm-review hm-dev
 
 exit $rc

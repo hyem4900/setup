@@ -139,17 +139,17 @@ Root (메인 작업 트리, INTEGRATION 브랜치)
 │  ├─ QUESTION.md     (요구사항 질문과 결정. 질문에 바로 답을 적을 수 있음)
 │  ├─ SPEC.md
 │  ├─ DECISIONS.md
-│  ├─ REVIEW.md
 │  ├─ STANDARDS.md    (보안·백엔드·UI 기본 규칙, 코드 냄새 기본 목록, 프로젝트 규칙. 리뷰 Standards 축의 기준)
 │  ├─ tasks/          (task마다 <id>.md, 템플릿 _template.md)
 │  ├─ changes/        (hm-change의 CR-<n>.md)
 │  ├─ reviews/        (리뷰 반영 때 리뷰 결과를 복사해 커밋)
 │  ├─ LOAD_TEST.md    (5단계, SPEC §10에 목표가 있을 때)
 │  ├─ security/       (hm-security의 review-<k>.md. 덮어쓰지 않음)
-│  └─ TRACEABILITY.md (5단계)
+│  ├─ TRACEABILITY.md (5단계)
+│  └─ EXPLAIN.md      (6단계, 다 만든 뒤의 설명서)
 ├─ <components>/      (SPEC에서 결정. 예: api/, web/, worker/)
 ├─ tests/ 등          (SPEC §2 TEST_DIRS. 컴포넌트 안에 같이 있어도 됨)
-├─ artifacts/         (gitignore: e2e 스크린샷, 리뷰 원본, 자동 실행 로그, 탐색 노트(notes/), 디버그 임시 파일(debug/), load/bench 결과, 보안 스캔 보고서)
+├─ artifacts/         (gitignore: e2e 스크린샷, 리뷰 원본, 자동 실행 로그, 탐색 노트·환경 메모(notes/), 디버그 임시 파일(debug/), load/bench 결과, 보안 스캔 보고서)
 └─ .run/              (gitignore: pid, 로그, 자동 실행 상태)
 
 ../<repo>-wt/         (WORKTREES=1)
@@ -158,7 +158,7 @@ Root (메인 작업 트리, INTEGRATION 브랜치)
 └─ review-3/          (리뷰용 임시 worktree, 끝나면 제거)
 ```
 
-스킬 파일: `hm-*/SKILL.md` 9개 (수동 8개 + hm-auto). 일부 경우에만 필요한 내용은 따로 두고 그때만 읽음: hm-dev의 `references/tdd.md`(테스트 먼저 루프), `references/debug.md`(디버그 절차), `references/review-and-merge.md`(리뷰 반영·병합. 개발 세션은 읽지 않음), `references/develop-without-harness.md`(하네스 없이 개발할 때의 입력 표와 시작 절차), hm-review·hm-audit·hm-load-test·hm-security·hm-change의 `references/inputs.md`(하네스 없이 돌 때 각 입력의 대체 파일 표), hm-setup의 `references/setup.md`(셋업, 설계가 끝난 뒤 읽음)와 `references/no-require.md`(REQUIRE 없이 시작할 때), 여러 스킬이 같이 쓰는 `references/question-format.md`(질문 양식)와 `references/no-harness.md`(하네스 없이 돌 때의 규칙. 원본은 `harness-skills/_shared/`, `sync-shared.sh`로 펼침), hm-auto의 `references/stop-reasons.md`(멈췄을 때만 읽음), hm-req의 `references/interview.md`(QUESTION.md 블록 양식과 인터뷰 절차. QUESTION.md를 쓸 때부터 읽음)와 `templates/REQUIRE.template.md`·`templates/QUESTION.template.md`·`templates/config.template`(hm-setup도 읽음). 사용하는 에이전트의 스킬 경로에 폴더째 복사함.
+스킬 파일: `hm-*/SKILL.md` 10개 (수동 9개 + hm-auto). 일부 경우에만 필요한 내용은 따로 두고 그때만 읽음: hm-dev의 `references/tdd.md`(테스트 먼저 루프), `references/debug.md`(디버그 절차), `references/review-and-merge.md`(리뷰 반영·병합. 개발 세션은 읽지 않음), `references/develop-without-harness.md`(하네스 없이 개발할 때의 입력 표와 시작 절차), hm-review·hm-audit·hm-load-test·hm-security·hm-change의 `references/inputs.md`(하네스 없이 돌 때 각 입력의 대체 파일 표), hm-setup의 `references/setup.md`(셋업, 설계가 끝난 뒤 읽음)와 `references/no-require.md`(REQUIRE 없이 시작할 때), 여러 스킬이 같이 쓰는 `references/question-format.md`(질문 양식)와 `references/no-harness.md`(하네스 없이 돌 때의 규칙. 원본은 `harness-skills/_shared/`, `sync-shared.sh`로 펼침), hm-auto의 `references/stop-reasons.md`(멈췄을 때만 읽음), hm-req의 `references/interview.md`(QUESTION.md 블록 양식과 인터뷰 절차. QUESTION.md를 쓸 때부터 읽음)와 `templates/REQUIRE.template.md`·`templates/QUESTION.template.md`·`templates/config.template`(hm-setup도 읽음). 사용하는 에이전트의 스킬 경로에 폴더째 복사함.
 - Codex: `~/.codex/skills/hm-*`
 - 입력 힌트: Claude Code는 `/hm-dev`처럼 입력하면 SKILL.md의 `argument-hint`(트리거 문장 예)를 보여 줌. Codex는 `agents/openai.yaml`의 짧은 설명과 기본 프롬프트(`Use $hm-dev: Start Task 1.`)를 씀. Codex 복사본에서는 `argument-hint` 줄을 지움 (Codex frontmatter에 없는 필드)
 - Claude Code: `~/.claude/skills/` 또는 프로젝트의 `.claude/skills/`
@@ -168,7 +168,7 @@ Root (메인 작업 트리, INTEGRATION 브랜치)
 - 대화는 CHAT_LANG, 문서는 DOC_LANG, 코드는 영어. PROTECTED 경로는 수정 금지.
 - **다른 스킬은 요청할 때만.** 각 스킬은 내 메시지가 이름으로 가리키거나 그 스킬의 단계가 명시한 스킬만 씀 (hm-auto가 돌리는 hm-dev·hm-review, 데모의 "수정 요청"에 따른 hm-change). hm-front-design이나 차트·문서 스킬처럼 설명이 맞아 보이는 스킬도 쓰지 않음. 예외는 내가 고른 것이 SPEC이나 DECISIONS에 기록된 경우뿐임 (예: hm-setup에서 "UI는 hm-front-design을 따른다"고 답하면 D-xx에 남고, 이후 개발 세션이 그 기록을 근거로 씀). 스킬끼리 절차도 빌리지 않음: hm-load-test·hm-security는 병합하지 않고 "Merge branch perf/<n>." / "Merge branch security/<n>."을 안내함. 다음 단계 안내와 스크립트·템플릿 파일 읽기는 됨. AGENTS.md에도 같은 규칙이 있어서 hm-auto의 서브에이전트도 따름.
 - **계획 모드에서는 시작하지 않음.** 파일을 쓸 수 없는 계획 모드(예: Codex Plan mode)에서 하네스 스킬을 부르면 일을 시작하지 않고 "지금 plan 모드입니다. 기본 모드로 바꾸고 진행하시길 권장 드립니다. 기본 모드로 바꿀까요?"라고 묻고 멈춤. 스킬이 스스로 파일을 쓰고 질문마다 멈추므로, 계획 모드를 쓰면 계획서를 한 번 쓰고 새 대화에서 처음부터 다시 읽느라 같은 일을 두 번 함 (bus_03의 hm-setup에서 약 5분). 에이전트가 모드를 직접 바꿀 수 없으면 바꾸는 방법과 같은 요청을 다시 보내라는 안내를 한 줄로 함. 규칙은 hm-req·hm-setup·hm-auto 본문, AGENTS.md "Planning mode", `no-harness.md`에 있음.
-- **끝나면 다음 단계를 안내함.** 모든 스킬은 마지막 보고 끝에 다음 단계를 질문이나 고르는 목록이 아닌 평문으로 적음. 줄마다 맡을 스킬 이름(hm-dev, hm-auto 등), 하는 일, 그대로 말할 문장, 새 세션이 필요한지를 씀 (예: `다음 단계: hm-dev로 Task 0을 개발합니다. 새 세션에서 "Start Task 0."이라고 말하세요.`). 갈 수 있는 길이 여럿이면 한 줄씩. 규칙은 AGENTS.md "Next step"에 있고, AGENTS.md 전에 도는 hm-req·hm-setup과 hm-auto는 본문에, 하네스 없이 돌 때는 `no-harness.md`에 있음. 스킬별 다음 단계: hm-req → "설계 시작해"(hm-setup), hm-setup → "Start Task 0." 또는 자동 실행, hm-dev 개발 → 리뷰나 병합, hm-review → "리뷰 반영해: <파일>", 병합 → 다음 task, 남은 task가 없으면 "최종 확인해"와 아직 안 돈 5단계(누락 검토·부하 테스트·보안 점검; 결과 파일이 없거나 마지막 병합보다 오래된 것), 최종 확인 → 실패마다 "수정 요청: …"과 남은 5단계, 데모 → 보고에 있던 다음 단계, 진단만 한 디버그 → "버그 등록해: …", hm-change → 시작할 수 있는 task, 5단계 스킬 → 병합 명령과 남은 5단계.
+- **끝나면 다음 단계를 안내함.** 모든 스킬은 마지막 보고 끝에 다음 단계를 질문이나 고르는 목록이 아닌 평문으로 적음. 줄마다 맡을 스킬 이름(hm-dev, hm-auto 등), 하는 일, 그대로 말할 문장, 새 세션이 필요한지를 씀 (예: `다음 단계: hm-dev로 Task 0을 개발합니다. 새 세션에서 "Start Task 0."이라고 말하세요.`). 갈 수 있는 길이 여럿이면 한 줄씩. 규칙은 AGENTS.md "Next step"에 있고, AGENTS.md 전에 도는 hm-req·hm-setup과 hm-auto는 본문에, 하네스 없이 돌 때는 `no-harness.md`에 있음. 스킬별 다음 단계: hm-req → "설계 시작해"(hm-setup), hm-setup → "Start Task 0." 또는 자동 실행, hm-dev 개발 → 리뷰나 병합, hm-review → "리뷰 반영해: <파일>", 병합 → 다음 task, 남은 task가 없으면 "최종 확인해"와 아직 안 돈 5단계(누락 검토·부하 테스트·보안 점검; 결과 파일이 없거나 마지막 병합보다 오래된 것), 최종 확인 → 실패마다 "수정 요청: …"과 남은 5단계, 데모 → 보고에 있던 다음 단계, 진단만 한 디버그 → "버그 등록해: …", hm-change → 시작할 수 있는 task, 5단계 스킬 → 병합 명령과 남은 5단계, 다 끝나면 "설명 문서 만들어"(hm-explain).
 - **내가 지정한 파일이 먼저.** 메시지에 파일을 적으면 그 역할의 첫 번째 근거로 씀 (예: "리뷰해: `docs/api-spec.md` 기준으로"). 하네스 문서는 빠진 내용만 채움. 둘이 다르면 차이를 보여 주고 어느 쪽을 따를지 물음. 파일이 없거나 역할에 안 맞으면 한 줄로 말하고 건너뜀. 읽기만 하고, 고쳐 달라고 할 때만 고침.
 - 스킬의 트리거 문장("요구사항 정리 시작해" 등)은 예시임. 같은 뜻이면 어느 언어로 말해도 됨.
 - 모든 질문은 같은 양식을 씀 (hm-req, hm-setup, hm-change는 스킬에, 나머지는 AGENTS.md "Ask the user when"에 있음). 질문에는 항상 추천안이 붙음. 추천할 수 없으면 무엇을 알아야 하는지 말하고, 그동안은 가장 안전한 선택을 추천함.
@@ -344,6 +344,7 @@ web_HEALTH=http_has http://localhost:$web_PORT/ "$SERVICE-web"
 | Review all (batch task가 있을 때) | 2 (리뷰, 반영·병합) | 2 (review-all, apply-all) | 실행당 한 번 |
 | 탐색 노트 | — | 1 | 자동 실행 시작 때 노트가 없거나 낡았을 때만 |
 | 5 hm-audit, hm-load-test, hm-security | 각 1 | — | 선택 |
+| 6 hm-explain | 1 | — | 선택 |
 | 추가 비용 | | | continue +1 (task당 MAX_CONTINUE=2까지), Blocker +2 (rereview, apply. MAX_REREVIEW=1까지), 수정 요청은 실행 끝에 모아서 hm-change +1 + 새 task, 요청한 데모 +1 |
 
 예 (처음 계획, 모든 단계가 한 번에 통과했을 때):
@@ -358,7 +359,7 @@ web_HEALTH=http_has http://localhost:$web_PORT/ "$SERVICE-web"
 | 세션 | 읽는 것 | 크기 (추정) |
 |---|---|---|
 | hm-dev 개발 | AGENTS.md 15KB, SKILL 12KB, tdd.md 3KB, task 파일, REQUIRE·SPEC의 해당 부분, 탐색 노트(150줄) | 40~60KB ≈ 10~15k 토큰 |
-| hm-review | AGENTS 15KB, SKILL 8KB, REVIEW.md 10KB, STANDARDS 5KB, task·SPEC의 해당 부분, diff | 40~50KB + diff |
+| hm-review | AGENTS 15KB, SKILL 8KB, review-guide 10KB, STANDARDS 5KB, task·SPEC의 해당 부분, diff | 40~50KB + diff |
 | hm-dev 리뷰 반영·병합 | AGENTS, SKILL, review-and-merge.md 10KB, 리뷰 파일 | 35~45KB |
 | hm-setup | SKILL 17KB, setup.md 24KB, 템플릿 60KB(복사해서 채움), REQUIRE | 100KB 이상 ≈ 25~30k 토큰. 프로젝트당 한 번 |
 | hm-req | SKILL 15KB, interview.md, 템플릿, 원천 문서 | 30KB + 원천 문서 |
@@ -406,7 +407,7 @@ AGENTS.md는 모든 세션이 읽어서 가장 비싼 파일임. 그래서 코�
 | 단계 | 스킬 | 내가 입력할 문장 | 세션 | 산출물 | 사람 게이트 |
 |---|---|---|---|---|---|
 | 1 | hm-req | "요구사항 정리 시작해" (+ "끝까지 파고들어") | A | config, REQUIRE (+ 용어집), QUESTION.md | 모드·작업 방식·프로필 확인, 인터뷰, 요약 확인 |
-| 2 | hm-setup | "설계 시작해" / "하네스 만들어" (둘 다 같은 스킬) | A | DECISIONS, SPEC (컴포넌트, 컴포넌트 간 계약 포함), AGENTS, docs/tasks/, REVIEW, config 명령 섹션, hooks, scripts, git 커밋 | 기술 스택·D-xx 답 (멈추는 곳은 여기 하나), 마지막 보고에서 계획·task 확인 |
+| 2 | hm-setup | "설계 시작해" / "하네스 만들어" (둘 다 같은 스킬) | A | DECISIONS, SPEC (컴포넌트, 컴포넌트 간 계약 포함), AGENTS, docs/tasks/, config 명령 섹션, hooks, scripts, git 커밋 | 기술 스택·D-xx 답 (멈추는 곳은 여기 하나), 마지막 보고에서 계획·task 확인 |
 | 3 | hm-dev | "Start Task <id>." / "Continue Task <id>." (하네스 없이: "개발해: …"). 데모 "Demo Task <id>.", 제출 전 점검 "최종 확인해" | task마다 (병렬이면 task마다 세션 하나씩) | task 브랜치·worktree, 코드, 테스트, 커밋 | 보고 (데모는 원하면 "Demo Task <id>.") |
 | 4.1 | hm-review | "Review Task <id>." / "Re-review Task <id>." / "Review all." / "Re-review all." / "Review range A..B." / "이 브랜치 리뷰해" | 별도 세션 | artifacts/review/*-<k>.md (덮어쓰지 않음) | — |
 | 4.2 | hm-dev | "리뷰 반영해: <리뷰 파일>" (지적 0건이어도 실행. PR 코멘트 등 아무 형식도 됨) / "Merge Task <id>." / "Merge branch <브랜치>." / "Task <id> 되돌려" | 개발 세션 (새 세션이어도 됨) | 수정 커밋, docs/reviews/, Done, 병합 또는 push | 재리뷰 여부, 충돌 판단 |
@@ -415,6 +416,7 @@ AGENTS.md는 모든 세션이 읽어서 가장 비싼 파일임. 그래서 코�
 | 5.1 | hm-audit | "누락 검토해" | 새 세션 (중간에도 가능) | TRACEABILITY.md (추적표, 누락, 확인 안 된 영역, 구조 개선 후보, 회고) | 수정 전 보고 |
 | 5.2 | hm-load-test | "부하 테스트 해" / "성능 테스트 해" | 새 세션 | perf 브랜치, LOAD_TEST.md (부하 + 벤치마크) | 계약·모델 변경 승인, 끝나면 "Merge branch perf/<n>." |
 | 5.3 | hm-security | "보안 점검해" / "보안 점검해: Task <id>" | 별도 세션 (중간에도 가능) | security 브랜치, 통과하는 보안 테스트, docs/security/review-<k>.md | 결과 확인 후 "Merge branch security/<n>.", "보안 리뷰 반영해: <파일>" |
+| 6 | hm-explain | "설명 문서 만들어" / "Explain the project." | 새 세션 (개발이 끝난 뒤) | docs/EXPLAIN.md (흐름, 아키텍처, 핵심 로직, 모듈 지도, 결정, 품질 근거, 한계, 예상 질문과 답) | 커밋한 뒤 보고 |
 | 3~4 자동 | hm-auto | "자동으로 진행해" / "Task 1~3 자동으로" / "Task 4,7 자동으로" | 대화창 하나 (단계마다 새 서브에이전트, 최대 PARALLEL개 동시) | 3~4단계 산출물 전부, artifacts/runs/ | 질문 (데모는 원할 때, 수정 요청은 끝에 모아서) |
 
 ## 하네스 없이 쓰기
@@ -422,7 +424,7 @@ AGENTS.md는 모든 세션이 읽어서 가장 비싼 파일임. 그래서 코�
 셋업하지 않은 저장소에서도 일부 스킬을 바로 쓸 수 있음. 각 스킬은 필요한 입력을 이 순서로 찾고, 결과물에 무엇을 썼는지 적음 (예: `Spec source: README.md (stand-in for REQUIRE.md)`):
 
 1. 내가 메시지에 지정한 파일
-2. 하네스 파일 (docs/REVIEW.md, REQUIRE.md 등)
+2. 하네스 파일 (REQUIRE.md, SPEC.md 등)
 3. 같은 역할을 하는 저장소의 파일 (CONTRIBUTING.md, PR 설명, 이슈, 설계 문서 등). 후보가 여럿이면 한 번 물음
 4. 대체값 (스킬 세트의 템플릿을 직접 읽음, 기본값 사용, 해당 부분 생략)
 
@@ -669,9 +671,11 @@ hm-change도 요청이 불명확하거나 클 때 같은 방식으로 물음.
 - **핵심 로직도 항상 물음.** 결과가 알고리즘에 달린 계산(경로 탐색, 매칭, 순위·추천, 검색 관련도, 일정·배정, 가격, 중복 제거, 대용량 집계)마다 D-xx 하나씩, 기술 스택 다음에 상한과 별개로 물음. 이 제품에 맞춘 구체적인 질문이어야 함. 예를 들어 경로 추천이면 어떤 최단 경로 알고리즘을 어떻게 바꿀지(노드·간선이 무엇인지, 환승·대기·도보 시간을 비용에 어떻게 넣을지, 시간대를 볼지, 기준이 하나인지 시간→환승 순 같은 여러 개인지, 몇 개를 돌려주고 비슷한 경로를 어떻게 거를지, 무엇을 미리 계산할지). 선택지마다 정확도, 도메인 규칙을 얼마나 자연스럽게 담는지, 데이터 크기에서의 속도(NFR 대비), 구현·테스트 난이도와 **절대 못 하는 것**(탐색 중에 하지 않는 변경과 그래서 닿을 수 없는 더 좋은 결과. 예: 기존 노선 사이로 사람만 옮기고 새 노선은 안 열어서, 노선을 하나 더 열어야 좋아지는 계획에는 닿지 못함)을 적음. 한계가 같은 두 방식은 사실상 선택지 하나이므로 그렇다고 말하고, 한계가 없는 방식을 하나 넣거나 필요 없는 이유를 적음. 알고리즘에 필요한 규칙("가장 좋은"의 뜻, 동점 처리)이 REQUIRE에 없으면 같은 질문에서 물음. 답은 SPEC §6에 계산마다 모델, 알고리즘과 변형, 결과 규칙, 닿는 범위(Reach), 품질 기준(Quality: 어느 정도면 좋은 결과인지와 비교 대상, 없으면 `not set`), 비용, 검증 사례(단순한 방식이 틀리는 사례 하나 포함)로 적고, 리뷰 체크리스트 4번이 이를 기준으로 봄.
 - **셋업 절차는 따로 읽음.** 설계(Part A)는 SKILL.md에, 셋업(Part B)은 `references/setup.md`에 있어서 설계가 끝난 뒤에 읽음.
 - **넓은 변경은 나눠서.** 리팩터가 있어야 기능이 쉬워지면 그 리팩터를 먼저 chore task로 만듦("변경을 쉽게 만든 다음, 쉬운 변경을 함"). 이름 바꾸기처럼 코드 전체를 건드리는 변경은 expand–contract로 나눔: 새 형태 추가 → 호출부를 묶음별로 옮김(묶음마다 task, 병렬 가능) → 옛 형태 삭제. 각 단계가 혼자서 테스트를 통과해서 병렬 브랜치와 충돌하지 않음. hm-change도 같은 규칙을 씀.
+- **환경 메모를 공유함.** 메인 작업 트리의 `artifacts/notes/env.md`에 이 PC에 대해 알아낸 것(어떤 셸을 불러야 하는지, 도구 경로, 승인이 필요한 명령, 없던 도구와 대신 쓴 것)을 한 줄씩 적음: `<날짜> <문제> -> <된 해결법>`. 모든 세션·서브에이전트가 첫 명령 전에 읽고, 환경 문제를 풀면 한 줄 추가함. 서브에이전트마다 같은 문제를 다시 겪지 않게 하려는 것 (bus_03 Task 0: WSL bash, git worktree 권한, 도구 설치). 확인된 해결법만, 비밀값 없이, 40줄 정도까지 (틀린 줄은 고쳐 씀). git에서 제외되는 이 PC만의 기록이라 커밋하지 않음. 규칙은 AGENTS.md "Environment notes"(읽는 순서 5번), hm-req·hm-setup·hm-auto 본문, `no-harness.md`에 있음.
 - **긴 파일은 나눠 씀.** 파일 편집 도구로 쓰거나 20KB 이하로 나눠 씀. 문서 전체를 셸 명령 한 줄에 넣지 않음: Windows는 명령 한 줄을 약 3만 2천 자까지만 받아서, 넘기면 거부되고 같은 글을 다시 생성해야 함 (bus_03 hm-setup에서 SPEC 4만 자가 거부돼 약 4.5분 손해). 규칙은 hm-req·hm-setup 본문, AGENTS.md "Long files", `no-harness.md`에 있음.
-- **템플릿은 복사함.** SPEC, AGENTS.md, REVIEW.md, STANDARDS.md, task 템플릿, config 명령 섹션, 가드레일 예시 파일은 스킬 폴더의 `templates/`에 있고, 에이전트가 매번 새로 쓰지 않고 파일 복사로 옮긴 뒤 프로젝트에 맞는 부분만 그 자리에서 채움 (SPEC과 task 파일도 같음. 제목·표 머리·고정 규칙을 다시 타이핑하지 않음).
-- **고정 파일은 설치 스크립트 한 번.** `bash <hm-setup 폴더>/scripts/install.sh`가 두 스크립트, AGENTS.md(기존 파일이면 `# Harness` 섹션 추가), AGENT_FILES 진입 파일, REVIEW.md, STANDARDS.md, task 템플릿, 가드레일 예시 파일, git hook, .gitignore·.gitattributes 줄, config 명령 섹션을 넣고 `core.hooksPath`를 설정함. 있는 파일은 덮어쓰지 않음. 에이전트는 이 파일들을 직접 쓰거나 생성용 스크립트를 만들지 않고, 채울 부분(명령, 예시, task 파일)만 고침.
+- **리뷰 기준은 스킬 안에 있음.** 리뷰 절차·체크리스트·심각도·결과 형식(예전 docs/REVIEW.md)은 `_shared/review-guide.md` 하나가 원본이고, hm-review와 hm-dev(리뷰 반영)가 sync된 복사본을 읽음. 프로젝트에는 복사하지 않아서 하네스의 리뷰 기준을 고치면 진행 중인 프로젝트에도 바로 반영됨 (프로젝트마다 고친 적이 없는 문서였음). 어떤 기준으로 리뷰했는지는 리뷰 파일의 `Guide: review-guide <Version>` 줄에 남음. 프로젝트별 리뷰 규칙은 STANDARDS.md "Project rules". 예전 프로젝트의 docs/REVIEW.md는 읽지 않고, 하네스 갱신 때 지우자고 제안함.
+- **템플릿은 복사함.** SPEC, AGENTS.md, STANDARDS.md, task 템플릿, config 명령 섹션, 가드레일 예시 파일은 스킬 폴더의 `templates/`에 있고, 에이전트가 매번 새로 쓰지 않고 파일 복사로 옮긴 뒤 프로젝트에 맞는 부분만 그 자리에서 채움 (SPEC과 task 파일도 같음. 제목·표 머리·고정 규칙을 다시 타이핑하지 않음).
+- **고정 파일은 설치 스크립트 한 번.** `bash <hm-setup 폴더>/scripts/install.sh`가 두 스크립트, AGENTS.md(기존 파일이면 `# Harness` 섹션 추가), AGENT_FILES 진입 파일, STANDARDS.md, task 템플릿, 가드레일 예시 파일, git hook, .gitignore·.gitattributes 줄, config 명령 섹션을 넣고 `core.hooksPath`를 설정함. 있는 파일은 덮어쓰지 않음. 에이전트는 이 파일들을 직접 쓰거나 생성용 스크립트를 만들지 않고, 채울 부분(명령, 예시, task 파일)만 고침.
 - **가드레일 검증은 `hm.sh selftest` 한 번.** 위반 파일이나 임시 저장소를 만들지 않음 (아래 "가드레일").
 - **추적 검사는 보고만.** 셋업 때 TRACEABILITY.md를 쓰지 않음. 그 파일은 hm-audit이 씀.
 
@@ -775,6 +779,17 @@ task가 너무 커서 MAX_CONTINUE에 걸리면 "Task N 나눠줘"(split)로 쪼
 | High | 전제 조건이 필요하거나, 한 사용자의 데이터·비밀값·통제 하나가 뚫림 |
 | Medium | 다른 결함을 키우는 방어 누락, 제한된 노출 |
 | Low | 강화, 모범 사례, 정보 |
+
+## 설명 문서 (hm-explain)
+
+개발이 다 끝난 뒤, 만들어진 것을 한 문서로 설명함. 발표·면접·인수인계용. "설명 문서 만들어"로 시작하고 `docs/EXPLAIN.md` 하나만 쓰고 커밋함 (하네스 없이 돌면 커밋하지 않음).
+
+- **대화 언어로 씀.** 다른 문서는 DOC_LANG을 따르지만 이 문서는 나와 내가 설명할 사람을 위한 것이라 CHAT_LANG. 코드 이름·경로·ID는 그대로.
+- **코드가 기준.** 구조·동작을 말하는 문장은 코드에서 확인하고 위치(파일, 함수)를 적음. SPEC·DECISIONS와 다르게 구현된 곳은 "설계와 다른 점"으로 따로 적음.
+- **이유는 기록이 있을 때만.** 이유마다 근거(R-xx, D-xx, DQ-n, CR-n, 리뷰 지적)를 붙이고, 없으면 `기록된 이유 없음`. 아무도 검토하지 않은 대안을 지어내지 않음 (대안은 D-xx의 검토한 대안, 설계 질문의 선택지, DQ에서만).
+- **구성:** 1 한눈에, 2 전체 흐름(시나리오마다 화면 → API → 계산 → 저장의 텍스트 다이어그램), 3 아키텍처, 4 핵심 비즈니스 로직(무엇을·어떻게·왜·한계·코드 위치), 5 데이터 모델, 6 모듈 지도(역할·주요 파일·의존·나눈 이유), 7 주요 결정(포기한 대안과 대가), 8 품질 근거(테스트, 부하, 보안, 최종 확인), 9 한계와 알려진 문제, 10 예상 질문과 답.
+- **예상 질문과 답.** 질문은 세 가지 모양: "R-xx를 어떻게 구현했고 왜 그렇게 했나요? 대안인 X에 비해 어떤 점에서 이득인가요?", "<모듈>은 ~ 식으로 개발되어 있는데, 이렇게 한 이유는?", "<시나리오>에서 데이터는 어떤 경로로 흐르고 각 단계에서 무엇이 검증·저장되나요?". 여기에 실패·한계 질문(잘못된 입력, 동시 쓰기, 의존 컴포넌트 장애, 목표 이상의 부하, 알고리즘이 닿지 못하는 결과). Must R-xx, 대안이 있는 D-xx, §6 핵심 계산, 주요 시나리오의 데이터 흐름, 컴포넌트 경계마다 최소 하나. 나올 가능성이 큰 질문은 ★. 답은 결론 한두 문장 → 어떻게(경로) → 왜(근거) → 대안과 그 득실 → 한계 순.
+- 커밋 전에 확인: Must R-xx가 2·4·10절 중 하나에, Accepted D-xx가 7절에, §6 계산이 4절에 모두 있고, 문서에 적은 경로가 실제로 있음.
 
 ## 자동 실행 (hm-auto)
 
@@ -900,8 +915,8 @@ target: `<id>`, `<id>,<id>`, `N-M`(숫자 ID), `all`, `review-all`. 환경 변�
 | `.harness/config`의 `MODE`, `INTEGRATION`, `MERGE=local\|pr`, `REMOTE`, `PARALLEL`, `WORKTREES`, `STACK`, `WORKTREE_DIR`, `PORT_STEP` | hm-req |
 | task 파일 `docs/tasks/<id>.md`, 줄 `- Status:`(Todo, In Progress, In Review, Done, Dropped), `- Type: feature\|bug\|chore\|spike\|docs`(없으면 feature, 데모는 feature·bug만), `- Review: each\|batch`, `- Depends on: <id>, <id>\|none`. ID는 `[A-Za-z0-9][A-Za-z0-9._-]*`, `_`로 시작하는 파일은 무시 | hm-setup B2, task 템플릿 |
 | task 브랜치 `task/<id>`, review all 수정 브랜치 `fix/review-all-<k>` | hm-dev |
-| 리뷰 파일 `<메인 작업 트리>/artifacts/review/task-<id>-review-<k>.md`, `review-all-<k>.md`. 반영본은 브랜치의 `docs/reviews/` | REVIEW 템플릿, hm-dev |
-| `Verdict: APPROVE` / `Verdict: CHANGES REQUESTED` 줄, `Commit: <sha>` 줄, Findings 행 `\| RV-n \| Blocker \| ...` (Spec·Standards 어느 표에 있어도 됨) | REVIEW 템플릿 Output |
+| 리뷰 파일 `<메인 작업 트리>/artifacts/review/task-<id>-review-<k>.md`, `review-all-<k>.md`. 반영본은 브랜치의 `docs/reviews/` | 리뷰 기준(`_shared/review-guide.md`), hm-dev |
+| `Verdict: APPROVE` / `Verdict: CHANGES REQUESTED` 줄, `Commit: <sha>` 줄, Findings 행 `\| RV-n \| Blocker \| ...` (Spec·Standards 어느 표에 있어도 됨) | 리뷰 기준 Output |
 | `wip(task-<id>): ...`는 컨텍스트 소진만 뜻함. 질문할 때는 wip 커밋을 하지 않음. 리뷰 수정 커밋은 `fix(...)` | hm-dev, AGENTS.md |
 | 리뷰 반영(hm-dev)은 리뷰 파일 경로를 입력으로 받음. "Merge Task <id>." / "Merge branch fix/review-all-<k>."로 병합만 할 수 있음 | hm-dev |
 | worktree `<WORKTREE_DIR>/<이름>`, 포트 오프셋은 그 안의 `.harness/local`의 `PORT_OFFSET` | AGENTS 템플릿, hm-dev |

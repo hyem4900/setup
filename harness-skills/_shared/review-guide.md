@@ -1,5 +1,9 @@
 # Review Guide
 
+Source: `harness-skills/_shared/review-guide.md`. Do not edit the copy under `references/`; edit the source, change the Version line, and run `harness-skills/sync-shared.sh`. hm-review and hm-dev (apply review) read their copy; projects no longer carry a docs/REVIEW.md (an older one is ignored).
+
+Version: 2026-11-05
+
 ## Rules
 - Read-only. Do not modify source, tests, or docs, except writing the review file (and the screenshots of the Demo walkthrough).
 - Run `bash scripts/hm.sh test`, `bash scripts/hm.sh e2e`, and `bash scripts/hm.sh check` yourself, at the commit you review, and report the results. Do not trust the task file.
@@ -73,6 +77,7 @@ The reviewer never commits. The apply-review step (hm-dev) copies the file to do
 # Review: Task <id>
 Verdict: APPROVE | CHANGES REQUESTED
 Commit: <full sha of the head you reviewed>
+Guide: review-guide <the Version line of this guide>
 test: N passed / N failed
 e2e: N passed / N failed
 check: pass / fail
@@ -101,3 +106,4 @@ Fixed format, because scripts parse it:
 - The `Commit:` line holds the full sha of task/<id> (or the integration head for review all) that you reviewed.
 - One Findings row per finding, in the table of its axis. ID is `RV-<n>`, numbered across both tables. Severity is exactly one of `Blocker`, `Major`, `Minor`, `Nit` (put "Needs verification" in Problem, not in Severity).
 - No findings on an axis: keep its header row and write no rows.
+- The `Guide:` line names the version of this guide the review followed; scripts do not read it.

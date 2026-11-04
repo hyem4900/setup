@@ -75,7 +75,7 @@ The checklist before I submit or ship: it measures the integration branch as it 
    - Behavior: the suites (test, e2e, check, security) all pass, or which fail.
    - Targets: N pass, N fail, N not measured (list the not measured ones). "Ready to submit" only when nothing fails and nothing is not measured; otherwise name what matters most.
 5. Do not fix anything, even a one-line change: I decide what to fix before the deadline.
-6. End the report with the next step: each failure is fixed through its "수정 요청: ..." (hm-change); then the step-5 skills not run since the last merge (no or older docs/TRACEABILITY.md: "누락 검토해", hm-audit; no or older docs/LOAD_TEST.md while SPEC §10 has targets: "부하 테스트 해", hm-load-test; no or older docs/security/review-<k>.md: "보안 점검해", hm-security).
+6. End the report with the next step: each failure is fixed through its "수정 요청: ..." (hm-change); then the step-5 skills not run since the last merge (no or older docs/TRACEABILITY.md: "누락 검토해", hm-audit; no or older docs/LOAD_TEST.md while SPEC §10 has targets: "부하 테스트 해", hm-load-test; no or older docs/security/review-<k>.md: "보안 점검해", hm-security); last, hm-explain ("설명 문서 만들어") writes docs/EXPLAIN.md.
 
 # Task workflow, report and Definition of Done
 The three sections below were part of AGENTS.md until v4.1. An older project's AGENTS.md may still carry them; this file wins.

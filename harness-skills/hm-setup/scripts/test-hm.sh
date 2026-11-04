@@ -237,14 +237,15 @@ printf '%s\n' '# Mine' 'keep me' > AGENTS.md
 OUT=$("$BASH" "$INSTALL" 2>&1 | tr -s ' '); RC=$?
 rc_is "install runs" 0
 has "install writes the fixed files" "copied scripts/hm.sh" "copied scripts/harness-state.sh" "appended AGENTS.md (# Harness section)" \
-  "wrote CLAUDE.md" "copied docs/REVIEW.md" "copied docs/STANDARDS.md" "copied docs/tasks/_template.md" "wrote .githooks/pre-commit" "install: ok"
+  "wrote CLAUDE.md" "copied docs/STANDARDS.md" "copied docs/tasks/_template.md" "wrote .githooks/pre-commit" "install: ok"
 OUT=$(cat AGENTS.md); has "existing AGENTS.md kept and extended" "keep me" "# Harness" "## Ask the user when"
 OUT=$(cat CLAUDE.md); has "agent entry file points to AGENTS.md" "@AGENTS.md"
 OUT=$(cat .harness/config); has "commands section appended" "# Commands (hm-setup" "TYPECHECK_CMD=" "MODE=FULL"
 same "hooks path set" "$(git config core.hooksPath)" ".githooks"
 [ -f scripts/test-harness-state.sh ] && bad "the tests are not installed into projects" "" || ok "the tests are not installed into projects"
+[ -f docs/REVIEW.md ] && bad "the review guide stays in the skills" "" || ok "the review guide stays in the skills"
 OUT=$("$BASH" "$INSTALL" 2>&1 | tr -s ' ')
-has "second run keeps everything" "kept docs/REVIEW.md" "kept AGENTS.md (harness section already there)" "kept CLAUDE.md" "kept .harness/config commands section"
+has "second run keeps everything" "kept docs/STANDARDS.md" "kept AGENTS.md (harness section already there)" "kept CLAUDE.md" "kept .harness/config commands section"
 same "no duplicate .gitignore lines" "$(grep -cx 'artifacts/' .gitignore)" "1"
 same "one commands section" "$(grep -c '^# Commands (hm-setup' .harness/config)" "1"
 for m in 'feat(task-3): add search' 'fix: typo' 'Merge branch task/3' 'chore(cr-2): x' 'revert(task-3): drop export'; do

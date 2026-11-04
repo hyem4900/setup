@@ -6,14 +6,14 @@ Part B of hm-setup, read once the plan (Part A) is written. The rules at the top
 - SPEC §1 names a tool for every test need that applies (unit, E2E, load if HAS_LOAD=1, benchmark if §10b has rows). If one is missing (an older SPEC), recommend one and name one alternative (SKILL.md "Choosing test tools"), ask me, and add it to SPEC §1, §2 and §7 before going on.
 - If this is already a git repo and `git status --porcelain` shows changes outside docs/ and .harness/, ask me before going further. Never sweep my uncommitted work into the harness commit.
 - Tooling: `git` (2.31 or newer, for worktrees and path output) and `bash` (3.2 or newer; on Windows, Git Bash). No other build tool is required: every harness command is `bash scripts/hm.sh <name>`.
-- Windows: the `bash` on PATH is often the WSL launcher (C:\Windows\System32\bash.exe), not Git Bash. Run `bash -c 'echo $OSTYPE'`: it must print `msys` or `cygwin`. If it prints something else, tell me to put Git's `bin` folder (usually `C:\Program Files\Git\bin`) before `C:\Windows\System32` in PATH, or to call Git Bash by its full path, and stop. Git hooks are not affected: git runs them with its own shell.
+- Windows: the `bash` on PATH is often the WSL launcher (C:\Windows\System32\bash.exe), not Git Bash. Whatever you find out about the shell and the tools here, also write it into the environment notes once .gitignore covers `artifacts/` (B1), so later sessions do not find it out again. Run `bash -c 'echo $OSTYPE'`: it must print `msys` or `cygwin`. If it prints something else, tell me to put Git's `bin` folder (usually `C:\Program Files\Git\bin`) before `C:\Windows\System32` in PATH, or to call Git Bash by its full path, and stop. Git hooks are not affected: git runs them with its own shell.
 
 ## B1. Install the fixed files (one command)
 From the project root, run `bash <this skill's folder>/scripts/install.sh`. In one run it:
 - copies `scripts/hm.sh` and `scripts/harness-state.sh` unchanged and makes them executable
 - writes AGENTS.md from the template, or appends its harness section under `# Harness` to an existing AGENTS.md (GREENFIELD=0), never moving existing content
 - makes every file in AGENT_FILES (default `CLAUDE.md`) point to AGENTS.md (`Read AGENTS.md first ...` and `@AGENTS.md`), unless it already does
-- copies docs/REVIEW.md, docs/STANDARDS.md, docs/tasks/_template.md and .harness/guardrail-samples from the templates
+- copies docs/STANDARDS.md, docs/tasks/_template.md and .harness/guardrail-samples from the templates (the review guide stays in the hm-review and hm-dev skills)
 - writes the git hooks (.githooks/pre-commit runs `bash scripts/hm.sh check --hook`, which formats the staged code files with FORMAT_CMD and stages them again, then checks them and lints only them, skipping LINT_CMD when only Markdown is staged; commit-msg enforces `<type>(<scope>): <summary>`) and sets `core.hooksPath`
 - appends the missing .gitignore lines (`artifacts/`, `.run/`, `.harness/local`, the real env files) and .gitattributes lines (LF for scripts, hooks, config and task files)
 - appends the commands section of .harness/config with placeholders

@@ -9,7 +9,7 @@ argument-hint: '"Review Task <id>." | "Re-review Task <id>." | "Review all." | "
 You did not write this code. Review it as an outsider. Talk to me in CHAT_LANG; write the review in DOC_LANG, keeping its fixed lines and tokens in English. Ask questions in the question format of AGENTS.md ("Ask the user when"): the bold topic line, the open question, 🔍 with what you found, then ➡️ with your recommendation and its reason.
 
 ## Inputs
-With the harness: AGENTS.md first, then docs/REVIEW.md (scope, checklist, severity, output format), docs/STANDARDS.md, the task file with its R-xx in REQUIRE.md and the SPEC sections it touches, the task's Demo scenario, `bash scripts/hm.sh test / e2e / check`; the review file goes to `<main worktree>/artifacts/review/`.
+With the harness: AGENTS.md first, then references/review-guide.md in this skill's folder (scope, checklist, severity, output format), docs/STANDARDS.md, the task file with its R-xx in REQUIRE.md and the SPEC sections it touches, the task's Demo scenario, `bash scripts/hm.sh test / e2e / check`; the review file goes to `<main worktree>/artifacts/review/`.
 Without the harness (no .harness/config): read references/no-harness.md and references/inputs.md in this skill's folder first; the latter says what stands in for each of those and what to do when nothing does.
 
 ## Preconditions
@@ -23,9 +23,9 @@ Without the harness (no .harness/config): read references/no-harness.md and refe
 If a precondition fails, tell me in CHAT_LANG and stop.
 
 ## Rules
-The review guide (docs/REVIEW.md) is the standard: its Rules, Where to run, Scope, Checklist, Demo walkthrough, Severity and Output apply as written. This file adds only how the session runs.
+The review guide (references/review-guide.md in this skill's folder) is the standard: its Rules, Where to run, Scope, Checklist, Demo walkthrough, Severity and Output apply as written. This file adds only how the session runs.
 - Where to run: the task worktree given in the prompt when it is clean and at the head of task/<id>; otherwise the temporary detached worktree the guide describes, removed with `git worktree remove` at the end. The current worktree is fine when it is clean and already at that sha.
-- Older REVIEW.md files without a Demo walkthrough section: do it as the current template describes (`templates/REVIEW.template.md` in the hm-setup skill folder).
+- A docs/REVIEW.md in the project (older harness versions) is not read: the guide in this skill wins, and project-specific rules live in docs/STANDARDS.md "Project rules". Say once in the report that the old file can be deleted.
 - If a finding is a guess, mark it "Needs verification" and say what would confirm it. Do not inflate severity.
 
 ## Steps
