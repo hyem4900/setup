@@ -14,6 +14,7 @@ MERGE=local
 REMOTE=origin
 PARALLEL=1
 WORKTREES=0
+STACK=0
 WORKTREE_DIR=../myapp-wt
 CHAT_LANG=Korean
 DOC_LANG=English

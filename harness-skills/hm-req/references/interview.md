@@ -58,30 +58,34 @@ Deciding a block (see "Recording"): write the decision after `✅ 결정:`, base
 Two ways to answer:
 - After writing the draft, send one message: the R-xx count by priority, the number of questions by impact and the paths of REQUIRE.md and QUESTION.md, the proposed defaults as one table (ID, what is handled, how, evidence), and the two ways to answer: write my answers in the code blocks under 🅰️ in QUESTION.md and tell me (e.g. "답 적었어", "answered"), or answer here round by round. End the message with the first round: first the proposed defaults as a question (**Proposed defaults**, ❓ may all of them apply as listed, correcting any by its ID?), then the first frontier, so I can start right away.
 - Proposed defaults: "OK" or the like sets them all to `confirmed`. A correction with a concrete value is applied and marked `changed by Q-<k>` (a new QUESTION.md block holding my answer); a correction that is unclear becomes an open question. A default you find later is applied the same way, `proposed`, and the summary check lists those still proposed.
-- In chat: in **rounds**. A round is the **frontier**: every open question whose answer does not wait on another open question, at most 5, highest impact first, in the question format. I may answer in my own words, by number ("1 추천대로, 2 B, 3: 15분") or all at once ("전부 추천대로"). Each chat answer is copied verbatim into its block's code block when its batch is applied (see "Recording"), so the file stays the one record.
+- In chat: in **rounds**. A round is the **frontier**: every open question whose answer does not wait on another open question, at most 5, highest impact first, in the question format. The first round, in every mode, is instead the highest-impact question of each applicable coverage category (at most 5, one per category), so no category is left for the end; the frontier takes over from the second round. I may answer in my own words, by number ("1 추천대로, 2 B, 3: 15분") or all at once ("전부 추천대로"). Each chat answer is copied verbatim into its block's code block when its batch is applied (see "Recording"), so the file stays the one record.
 - In the file: when I say I answered, re-read QUESTION.md and process every newly filled code block in order of impact, applying "Challenging" below to each. An answer that needs more gets a follow-up block (empty code block, empty decision); the others are recorded and applied (see "Recording"). Then send one message: how many were decided, the follow-ups added (ID and one line each), and how many are still open, and end with the next round in the question format. I may keep answering in either way.
 
 Asking:
 - Never ask what the sources can answer. Before each question, check REQ_SOURCES, the data (run a query or script) and, for GREENFIELD=0, the code. If they answer it with near certainty, it is a proposed default, not a question; ask only if the finding is surprising or changes scope.
 - If REQ_SOURCES=INTERVIEW, start with: what it is, who uses it, the one scenario that must work.
 
-Coverage categories (the check before writing QUESTION.md, Step 2): a checklist for finding gaps, not a question each. For each category, over the Musts and the product as a whole: if the sources or the data answer it, it is a proposed default; if it does not apply, skip it; otherwise each open decision in it is its own question, rated like any other.
-- Scope: who and what is in or out (user types, records, cases excluded)
-- Goals and priority: what the product optimizes, and which rule wins when two conflict
-- Numeric rules: units, rounding and where it applies, limits, whether boundaries are included
-- Input limits per feature: empty, too long, wrong format, duplicate, out of range
-- Re-running and changing: what happens to existing results and data when something runs again or its inputs change (overwrite, keep, keep history)
-- Errors and failures: what the user sees, and what is kept or rolled back
-- Dates and times: time zone, day boundaries, whether ranges include their ends
-- Ties and ordering: which result wins when two are equal, and the order of lists
-- Scale: data volume and users now and later (feeds HAS_LOAD and the NFRs)
-- Security and privacy: the single question below
+Coverage categories (the check before writing QUESTION.md, Step 2, and again after the answers): five categories, each with the points to check inside it. Walk each point; if the sources or the data answer it, it is a proposed default; otherwise each open decision is its own question, rated like any other.
+- Roles and access: the kinds of users; what each role may see and do; whether anyone may see or change another user's data; how users sign in.
+- Screens (HAS_UI=1): which screens the product needs, and on each the information that must be visible and the actions a user can take there; what a user sees on an error. Ask it as an open question ("어떤 화면이 필요한가요? 화면마다 꼭 보여야 할 정보와 할 수 있는 동작을 알려 주세요"), with the screens the sources suggest in 🔍. Never ask about layout or look (applied after development). The answers become ACs of the R-xx they belong to ("screen X shows ..."), which SPEC §5 is built from.
+- Business logic, walked for each Must separately (a product-wide pass misses rules that only one feature has):
+  - who or what it applies to: eligibility conditions, exceptions, missing data, and which exclusion wins when several apply;
+  - input constraints: format, empty, too long, duplicate, out of range, and constraints against other records (distance, location, overlap, uniqueness across records);
+  - goal: what it optimizes, which rule wins when two conflict, what a good enough result is;
+  - numbers and time: units, rounding and where it applies, limits, whether boundaries are included, time zone, day boundaries;
+  - ties and ordering: which result wins when two are equal, the order of lists;
+  - running again: what may change and what must stay when it runs again or its inputs change (overwrite, keep, keep history), and how that is measured.
+  A count you derive from the data (e.g. "412 users eligible") is shown with its conditions and how many each condition excludes, so I confirm the rule, not only the number.
+- Data: what is kept and for how long; history on change and delete; what is kept or rolled back on a failure; which data is sensitive or regulated (what may be logged, shown, exported); the lists and exports an operator needs (e.g. the people left unassigned and why); data volume and users now and later (feeds HAS_LOAD and the NFRs).
+- Access and deployment: who uses it from where: a demo on my machine, inside a team, or on the public internet. The answer goes into REQUIRE §1 `Access:`; how and where it is deployed is decided in hm-setup.
+
+Each applicable category gets at least one question. A High or Med question in it counts. If it has none, add one broad question for it (the question format's broad form, with examples), asked even when it would rate Low. A category that does not apply gets `N/A: <reason>` in the Coverage lines instead (e.g. `Screens: N/A: HAS_UI=0, CLI only`). The Coverage lines at the top of QUESTION.md list, per category, its question IDs or that N/A line; keep them current as questions are added.
 
 Order (walk the decision tree):
-- Each round is the frontier of QUESTION.md, highest impact first.
+- From the second round, each round is the frontier of QUESTION.md, highest impact first (the first round asks one question per coverage category).
 - After each round, look for what the answers opened: follow-up questions, decisions that depend on them, edge cases they imply. Add each one to QUESTION.md as a follow-up block (and its `[Q<n>]` marker in REQUIRE.md); they lead the next round.
 - When the frontier has nothing ambiguous left, walk the coverage categories again with the answers so far: an answer may have opened one (a new input, a new rule, a new state).
-- Security and privacy: keep it short; the full security review comes later (hm-security). Ask at most one combined question, in plain words: who may see or change whose data, how users sign in, and which data is sensitive or regulated. It is Low (a proposed default) unless the sources or my answers mention payment, health, minors, other systems' credentials or a compliance rule; then rate it like any other question. Skip it entirely when it does not apply (a local CLI with no users and no network); say so in one line. Never spend more than this question and its follow-ups on security in this step.
+- Security: roles, sign-in and sensitive data are asked in their categories above. Ask nothing else on security in this step (attacks, scans and hardening belong to hm-security); the baseline SEC-xx rows are written without asking (SKILL.md Step 2).
 
 Challenging:
 - If an answer contradicts the sources, the data, the existing system or an earlier answer, say so with the evidence (file §, count, Q-xx) and ask which one wins. Do not silently record either.
@@ -105,7 +109,7 @@ Answers and stopping:
 - Follow-ups take their own impact: a Low follow-up becomes a proposed default, not a question.
 - Grill mode: if I ask you to dig to the end ("끝까지 파고들어", "grill me", "꼼꼼하게 물어봐"), list and ask Low-impact questions too, and continue until nothing is ambiguous or I say stop.
 - If an answer changes the profile (e.g. no performance target → HAS_LOAD=0), update .harness/config and tell me.
-- When the interview ends, no `[Q<n>]` marker is left in REQUIRE.md and no block in QUESTION.md has an empty `✅ 결정:`.
+- When the interview ends, no `[Q<n>]` marker is left in REQUIRE.md, no block in QUESTION.md has an empty `✅ 결정:`, and every Coverage line names a decided question or carries `N/A: <reason>`.
 
 Summary check (when the interview ends; apply any pending batch first):
 - Send one message in CHAT_LANG of at most about 15 lines: the scope in two lines, the core scenarios, the key domain rules with concrete values, the pinned terms, the decisions taken as delegated or by "rest: recommended", and what is still [ASSUMPTION] (proposed defaults, unconfirmed numbers, security baseline rows). End it with the question asking me to confirm or correct.

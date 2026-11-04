@@ -3,6 +3,8 @@
 ## 1. Tech Stack
 | Layer | Choice | Major version (current stable, or the one the repo pins) | Rationale (D-xx) |
 
+Also the rows `Deployment` (where it runs and how a new version gets there, or `local only`) and, for REQUIRE §1 `Access: public internet`, `Domain and HTTPS`. The harness records them; deploying is done by hand.
+
 ## 2. Runtime & Commands
 | Item | Value |
 |---|---|
@@ -23,7 +25,7 @@
 | Load test command (LOAD_CMD) | (HAS_LOAD=1) one headless run of the load tool. Reads `USERS`, `DURATION`, `OUT_DIR` from the environment; with `TARGET_CHECK=1` it exits 1 if any target in tests/load/targets.json is missed |
 | Benchmark command (BENCH_CMD) | (§10b has targets) exits 1 if any target in tests/bench/targets.json is missed; empty otherwise |
 | Migration command (MIGRATE_CMD) | (a database) applies pending migrations to this worktree's database, idempotently; empty if there is no database |
-| Security scan command (SECURITY_CMD) | the dependency audit from §1 (hm-security later chains static analysis and a history secret scan onto it); exits non-zero at the severity §12 sets; reports to artifacts/security/ |
+| Security scan command (SECURITY_CMD) | the dependency audit from §1 (hm-security later chains static analysis and a history secret scan onto it); exits non-zero at the severity §12 sets, counting only the dependencies the product ships with (development-only tools are reported, never fail it); reports to artifacts/security/ |
 | Secret pattern (SECRET_PATTERN) | the key and token formats of the services this project uses, added to the harness default (private keys, cloud access keys, quoted password/secret/key/token values) |
 
 Components (HAS_SERVER=1; long-running processes only, in start order: a component's dependencies first; one row for a single-process app):
@@ -71,10 +73,18 @@ For GREENFIELD=0: mark each entry Existing / Changed / New. Changed entries must
 | Service | What we call | Test double (a fake in tests, or the provider's sandbox) | Timeout and retry | Credentials (env key name) |
 
 ## 5. Screens (HAS_UI=1)
-Platform: browser / mobile / desktop.
-| Screen | Route or entry | Requirements | Main UI parts | APIs called |
+Platform: browser / mobile / desktop. Mobile priority: phone first / desktop first / both (the narrowest width every screen must work at).
+One short block per screen: what a user must be able to see and do there, not its layout or look. A few lines each. The look is applied after development (docs/STANDARDS.md, UI baseline).
+#### {Screen}: {route or entry}
+- Requirements: R-xx
+- Who: the roles that may open it, and what anyone else gets (redirect to sign-in, 403 screen)
+- Shows: each piece of information that must be visible, with its format where it matters (e.g. boarding time `HH:MM`, cost in won with thousands separators) and its test id; the AC it comes from after each one, e.g. `(R-02/AC-1)`
+- Can do: each action, what happens after it, and its test id; per role if roles differ; the AC after each one
+- States: what the screen shows when empty, loading, and on an error
+- APIs: the endpoints it calls (§4)
+
 Flow: Screen A → Screen B → ...
-Empty / loading / error state for each screen.
+Each Shows and Can do item is built and tested by one task: its E2E asserts the item through its test id (§7). An item no AC asks for is a design choice recorded here; adding, removing or changing an item later goes through hm-change.
 Test-id rule: every interactive element and every region an E2E test asserts on has a test id in kebab-case, in the platform's test-id attribute (web: `data-testid`; other platforms: the attribute the chosen E2E tool reads as its test id). Name it here.
 Selector policy: `test-id`, `test-id+role` or `none` (the decision above). With `test-id`, E2E tests select only by test id; with `test-id+role`, also by role with an accessible name. The test-id rule above holds either way.
 
@@ -85,8 +95,10 @@ One entry per core computation decided in the core logic questions (N/A if the p
 - Model: how the domain becomes the algorithm's input (e.g. what the nodes, edges and weights of a graph are)
 - Algorithm: the base algorithm and every change to it, and how each domain rule enters (cost, constraint, pruning, post-processing)
 - Result: what "best" means (single or several criteria, their order), tie-breaking, limits (how many results, cut-offs), what happens when there is no result
+- Reach: what the approach can change while it searches and what it never changes (e.g. it can move a person to another existing route but never opens a new one), and the better results that limit rules out, if any
+- Quality: how good is good enough (a number on the "best" criterion, or a comparison with a simple baseline or a bound), and what it is compared against; `not set` if REQUIRE has no such target
 - Cost: expected time and memory at the REQUIRE §4 data size, against its NFR; what is precomputed and when
-- Checked by: the cases that prove it (a small hand-checkable example with the expected answer, the edge cases), at its §7 seam (D-xx)
+- Checked by: the cases that prove it (a small hand-checkable example with the expected answer, the edge cases, and one case where the simple approach, such as greedy, nearest-first or first-fit, gives the wrong answer), at its §7 seam (D-xx)
 
 ## 7. Test Strategy
 - Test seams: for each kind of behavior, where its tests attach. Prefer seams that already exist, the highest level that still runs fast (the outer interface before internals), and as few new seams as possible. One line per seam: what is tested there (e.g. "domain rules: the pricing module's public functions, unit tests"; "each R-xx flow: the HTTP API, E2E"). Development, review and debugging use these seams.
@@ -95,7 +107,7 @@ One entry per core computation decided in the core logic questions (N/A if the p
 - Test data isolation: each test creates the data it needs (unique names or IDs) or runs in a transaction that is rolled back, so tests pass in any order and on components that are already running. No shared reset step between tests.
 - External services (§4d): tests use their doubles, never the real service.
 - E2E: black-box tests through the outer interface, one spec file per task.
-  - HAS_UI=1: the UI E2E tool from §1; select per the selector policy in §5; screenshots to artifacts/e2e/screenshots/task-<id>/
+  - HAS_UI=1: the UI E2E tool from §1; select per the selector policy in §5; every Shows and Can do item of the screens a task builds (§5) is asserted through its test id, for each role listed in Who; screenshots to artifacts/e2e/screenshots/task-<id>/
   - HAS_SERVER=1 and HAS_UI=0: client tests against the running components
   - More than one component: at least one E2E per task crosses the component boundary it touches; §4c contracts get a contract test on each side
   - HAS_SERVER=0: run the CLI as a subprocess, or call the public API from a fresh process
@@ -108,9 +120,6 @@ One entry per core computation decided in the core logic questions (N/A if the p
 ## 8. Folder Structure
 (top-level folders per component, and where tests go; deeper layout is Task 0's and the codebase notes'. For GREENFIELD=0, only what is added or changed)
 
-## 9. Design Tokens (HAS_UI=1)
-Direction only: tone, density, color mode (light required, dark optional), type style, corner and shadow style, mobile priority. Design system: the one the user chose to follow (a library, a guide, or a design skill by name), or `none`. Task 0 turns it into the token file (colors, typography, spacing, radius, shadow) and writes that file's path here.
-
 ## 10. Performance Targets
 ### 10a. Load (HAS_LOAD=1)
 | Component: endpoint | p95 (ms) | Target concurrent users | Max error rate | Source NFR |
@@ -118,9 +127,6 @@ Direction only: tone, density, color mode (light required, dark optional), type 
 ### 10b. Benchmarks (single caller, no concurrency)
 For latency or throughput NFRs that are not load tested: CLI commands, library functions, batch jobs, or a server endpoint when HAS_LOAD=0.
 | Command / function / endpoint | Input (size, fixture) | Metric (p95 ms, rows/s, total s) | Target | Source NFR |
-
-## 11. Traceability
-N/A: each §4 entry and §5 screen lists its Requirements, and task files carry theirs; hm-setup and hm-audit check coverage.
 
 ## 12. Security
 Keep this section short: it sets defaults for development. The full attack-surface mapping and testing happen in hm-security.
@@ -147,4 +153,4 @@ One row per area that applies. For an area where the docs/STANDARDS.md Security 
 - Errors and logs: generic errors to users; no secrets, passwords, tokens or personal data in logs; security events logged.
 - Between components: how internal calls are authenticated or confined; least-privilege database accounts; internal ports not exposed.
 - Data protection: encryption at rest or field-level encryption when a SEC-xx requires it; retention and deletion.
-- Dependencies: lockfiles committed; SECURITY_CMD fails at severity `High` (or the level chosen here).
+- Dependencies: lockfiles committed; SECURITY_CMD fails at severity `High` (or the level chosen here) in the dependencies the product ships with; development-only tools are reported only.

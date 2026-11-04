@@ -18,7 +18,7 @@ Without the harness (no .harness/config): read references/no-harness.md and refe
 - Where you commit is clean (see "Commit").
 
 ## 1. Record the request
-Take the next free CR number across docs/changes/ (on INTEGRATION and on any `change/*` branch) and write docs/changes/CR-<n>.md:
+Take the next free CR number across docs/changes/ (on INTEGRATION and on any `change/*` branch) and write docs/changes/CR-<n>.md. Several requests in one message (e.g. collected by hm-auto during a run): one CR for all of them, its Request listing each one verbatim with its source, and as few new tasks as fit (one if they fit in one), numbered from the next free task ID; a request of a different Kind that cannot share a task gets its own CR.
 
 ~~~markdown
 # CR-<n>: <title>

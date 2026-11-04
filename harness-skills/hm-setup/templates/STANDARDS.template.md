@@ -37,6 +37,12 @@ Wherever they fit the product (a CLI or a library uses the ones that apply):
 - Timestamps: tables whose rows change have `created_at` and `updated_at`, set by the database or one shared place in code.
 - Resources: connections, files, streams and locks are always released (the language's scoped or `finally` construct), also on errors.
 
+## UI baseline (HAS_UI=1)
+The look is applied in a later pass, after development. Until DECISIONS records a design I asked for (a design system, a guide or a design skill by name, as a D-xx), the screens keep the stack's default look:
+- Styles live in one place (one stylesheet or one styles folder per UI component); no inline styles, and no colors, sizes or fonts written into markup or component code.
+- Only the styling a screen needs to work: a readable layout at the narrowest width SPEC §5 Platform names, visible focus, and the states SPEC §5 lists. No decoration and no visual system of your own.
+Once such a D-xx exists, it replaces this section.
+
 ## Smell baseline
 Judgement calls, never hard violations: a finding names the smell as a possibility ("possible Feature Envy") and quotes the hunk. Minor at most, unless a Project rule makes it a rule. A Project rule that endorses the pattern suppresses the smell; skip what LINT_CMD already enforces. Each reads: what it is → how to fix.
 - Mysterious Name: a name that does not say what the thing does or holds → rename it; if no honest name comes, the design is murky.

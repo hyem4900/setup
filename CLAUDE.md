@@ -31,7 +31,7 @@
 |---|---|---|
 | 1 | hm-req | "요구사항 정리 시작해" |
 | 2~3 | hm-setup | "설계 시작해" / "하네스 만들어" (설계와 셋업을 이어서 함) |
-| 4 | hm-dev | "Start Task N." (하네스 없이: "개발해: …") |
+| 4 | hm-dev | "Start Task N." (하네스 없이: "개발해: …") / 데모는 원할 때 "Demo Task N." |
 | 5 | hm-review (별도 세션) / hm-dev (개발 세션) | "Review Task N." / "이 브랜치 리뷰해" / "리뷰 반영해: <파일>" / "Merge Task N." / "Merge branch <브랜치>." |
 | 6 | hm-load-test / hm-security / hm-audit | "부하 테스트 해" / "보안 점검해" / "누락 검토해" |
 | 4~5 자동 | hm-auto | "자동으로 진행해" |

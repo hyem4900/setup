@@ -4,6 +4,7 @@ Status: Draft (questions in docs/QUESTION.md)
 
 ## 1. Scope summary
 (3–5 lines: what is built, for whom, the main constraint. No rules here; they live in §3)
+Access: local demo / team-internal / public internet (who uses it from where; hm-setup decides the deployment from it)
 
 ## 2. Functional requirements
 ### R-01 {title}

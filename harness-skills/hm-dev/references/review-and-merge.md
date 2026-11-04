@@ -46,7 +46,7 @@ If the Findings table is empty, skip Steps 1–5. With a task, do Steps 6–8. W
 8. If the status is Done: Integrate.
 
 # Integrate
-For a Done task, a `Review: batch` task that is In Review (after its demo), a review-all fix branch, a step-6 branch (perf/<n>, security/<n>), or any branch I name. "Merge Task <id>." and "Merge branch <branch>." start here, with the same place-to-work and clean-tree checks as Apply review. Without the harness, INTEGRATION and MERGE are the defaults in no-harness.md, and Step 2 does not apply.
+For a Done task, a `Review: batch` task that is In Review (after development), a review-all fix branch, a step-6 branch (perf/<n>, security/<n>), or any branch I name. "Merge Task <id>." and "Merge branch <branch>." start here, with the same place-to-work and clean-tree checks as Apply review. Without the harness, INTEGRATION and MERGE are the defaults in no-harness.md, and Step 2 does not apply.
 1. Note the branch head (`git rev-parse HEAD`), then bring INTEGRATION into the branch, in the branch's worktree: MERGE=pr: `git fetch <REMOTE>` and merge `<REMOTE>/<INTEGRATION>`; MERGE=local: merge `<INTEGRATION>`.
    - No conflict: go on.
    - Conflicts only in docs, lockfiles (regenerate them with the install command) or other mechanical spots (imports, lists both sides add to): resolve, commit the merge.

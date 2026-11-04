@@ -17,11 +17,12 @@
 #                        with the reason (status, a branch someone else may own, an unmerged
 #                        dependency, PARALLEL tasks In Progress, a dirty worktree)
 #   notes               Codebase notes for dev sub-agents: fresh | stale | missing | skip
-#   run-begin <target> [--no-demo]  Validate, take the lock, reset per-run counters
+#   run-begin <target>   Validate, take the lock, reset per-run counters (an old --no-demo
+#                        flag is accepted and ignored: a demo never holds a task now)
 #   next [--all]         Hand out one step (key=value lines), or all that can start ("--" between)
 #   check <step> [--next] Verify a step that next handed out; --next: then "--" and next --all.
 #                        Appends the step's timing and result to artifacts/runs/<run>/summary.tsv
-#   hold <id> [reason]   Hand out nothing for Task <id> until release (e.g. its demo waits)
+#   hold <id> [reason]   Hand out nothing for Task <id> until release (e.g. while its demo runs)
 #   release <id>         End a hold
 #   run-end              Release the lock and forget pending steps and holds
 #   report [run]         Where the time went in a run (default: the active or latest run):
@@ -38,7 +39,9 @@
 #
 # Conventions it relies on (FLOW.md "Rules the script depends on"):
 #   .harness/config     MODE, INTEGRATION, MERGE (local|pr), REMOTE, PARALLEL, WORKTREES,
-#                       WORKTREE_DIR, PORT_STEP
+#                       WORKTREE_DIR, PORT_STEP, STACK (1: a task may start on the unmerged branch
+#                       of its one dependency once that one's development is done; one level
+#                       only; its review and merge wait for that dependency's merge)
 #   docs/tasks/<id>.md  "- Status: Todo|In Progress|In Review|Done|Dropped", "- Review: each|batch",
 #                       "- Type: feature|bug|chore|spike|docs" (missing = feature; only feature
 #                       and bug have a demo), "- Depends on: <id>, <id> | none";
@@ -151,6 +154,8 @@ load_project() { # load_project [nofetch]
   is_num "$PARALLEL" && [ "$PARALLEL" -ge 1 ] || fail "PARALLEL in $CONFIG must be a number >= 1"
   cfg WORKTREES 0; WORKTREES=$REPLY
   [ "$PARALLEL" -gt 1 ] && [ "$WORKTREES" != 1 ] && fail "PARALLEL=$PARALLEL needs WORKTREES=1 in $CONFIG"
+  cfg STACK 0; STACK=$REPLY
+  [ "$STACK" = 1 ] && [ "$WORKTREES" != 1 ] && fail "STACK=1 needs WORKTREES=1 in $CONFIG"
   cfg PORT_STEP 10; PORT_STEP=$REPLY
   cfg WORKTREE_DIR "../${ROOT##*/}-wt"; wt_abs "$REPLY"
   # The integration branch is checked by load_tasks: its first git call fails without it.
@@ -288,6 +293,32 @@ deps_block() {
     case $REPLY in "In Review"|Done) ;; *) REPLY=$d; return ;; esac
   done
   REPLY=
+}
+
+# stack_on <id>: REPLY = the dependency whose unmerged branch Task <id> may be built on (STACK=1),
+# or empty. One level only: exactly one dependency is not merged, its development is finished
+# (In Review or Done on its own local branch), and it has no unmerged dependency itself.
+# Keeps TREF and TWHERE as they were (callers read them after task_action).
+stack_on() {
+  local d cand= n=0 tref=${TREF:-} twhere=${TWHERE:-}
+  REPLY=
+  [ "$STACK" = 1 ] || return 0
+  deps_of "$1"
+  for d in $DEPS; do
+    int_status "$d"
+    case $REPLY in "In Review"|Done) ;; *) n=$((n + 1)); cand=$d ;; esac
+  done
+  REPLY=
+  [ "$n" = 1 ] || return 0
+  task_ref "$cand"
+  if [ "$TWHERE" = local ]; then
+    field "$TREF" "$cand" Status
+    case $REPLY in
+      "In Review"|Done) deps_block "$cand"; if [ -z "$REPLY" ]; then REPLY=$cand; else REPLY=; fi ;;
+      *) REPLY= ;;
+    esac
+  fi
+  TREF=$tref; TWHERE=$twhere
 }
 
 count_int_status() { # count_int_status <status>: REPLY = tasks with that status on the integration branch
@@ -437,14 +468,14 @@ task_review_next() {
 
 # ---------- deciding actions ----------
 
-# task_action <id>: sets A_ACTION, A_FILE, A_NOTE.
+# task_action <id>: sets A_ACTION, A_FILE, A_NOTE, and A_BASE (a start on an unmerged branch).
 #   runnable: start continue review rereview apply merge
 #   settled:  done (Done/Dropped on the integration branch), batch (merged, waits for review all)
 #   waiting:  blocked (dependency not merged), wait-merge (MERGE=pr, a human merges),
 #             other (branch only on REMOTE), error
 task_action() {
   local id=$1 st d
-  A_ACTION= A_FILE= A_NOTE=
+  A_ACTION= A_FILE= A_NOTE= A_BASE=
   # The integration branch only gets In Review / Done through a merge, so trust it first
   # (this also covers squash merges, which leave the task branch unmerged in git's eyes).
   int_status "$id"
@@ -460,11 +491,24 @@ task_action() {
   case $st in
     Todo)
       deps_block "$id"; d=$REPLY
-      if [ -n "$d" ]; then A_ACTION=blocked; A_NOTE="Task $id waits for Task $d to be merged into $INTEGRATION"; return; fi
+      if [ -n "$d" ]; then
+        stack_on "$id"
+        if [ -z "$REPLY" ]; then A_ACTION=blocked; A_NOTE="Task $id waits for Task $d to be merged into $INTEGRATION"; return; fi
+        A_BASE=task/$REPLY
+      fi
       A_ACTION=start ;;
     "In Progress")
       if [ "$TWHERE" = int ]; then A_ACTION=error; A_NOTE="Task $id is In Progress on $INTEGRATION but has no task/$id branch"; return; fi
       A_ACTION=continue ;;
+    "In Review"|Done)
+      # A task built on an unmerged dependency (STACK=1) is reviewed and merged only after that
+      # dependency is merged, so its review diff holds only its own changes.
+      deps_block "$id"; d=$REPLY
+      if [ -n "$d" ]; then A_ACTION=blocked; A_NOTE="Task $id waits for Task $d to be merged into $INTEGRATION before its review and merge"; return; fi
+      ;;
+  esac
+  case $st in
+    Todo|"In Progress") ;;
     "In Review")
       review_policy "$id"
       if [ "$REPLY" = batch ]; then
@@ -715,7 +759,7 @@ cmd_status() {
 }
 
 cmd_plan() {
-  local id demo ty rv batch_left=
+  local id ty rv batch_left=
   need_tasks
   parse_target "${1:-}"
   echo "Next step per task (mode $MODE, PARALLEL=$PARALLEL, MERGE=$MERGE; from the current state):"
@@ -723,13 +767,12 @@ cmd_plan() {
     task_action "$id"
     case $A_ACTION in
       start|continue)
-        if has_demo "$id"; then demo=" demo check,"; else demo=; fi
         task_type "$id"; ty=$REPLY
         review_policy "$id"; rv=$REPLY
         if [ "$rv" = each ]; then
-          echo "  Task $id ($ty): $A_ACTION (hm-dev),$demo review, apply review, merge"
+          echo "  Task $id ($ty): $A_ACTION (hm-dev), review, apply review, merge"
         else
-          echo "  Task $id ($ty): $A_ACTION (hm-dev),$demo merge without review (review all later)"
+          echo "  Task $id ($ty): $A_ACTION (hm-dev), merge without review (review all later)"
         fi ;;
       review|rereview) echo "  Task $id: $A_ACTION, apply review, merge" ;;
       apply) echo "  Task $id: apply ${A_FILE##*/}, merge" ;;
@@ -751,6 +794,7 @@ cmd_plan() {
     echo "  All: review all, apply, merge (for tasks merged without their own review)"
   fi
   echo "Tasks with no unmerged dependency run in parallel up to PARALLEL=$PARALLEL; merges run one at a time."
+  [ "$STACK" = 1 ] && echo "STACK=1: a task whose one unmerged dependency has finished development starts on that branch while it is reviewed; its own review and merge wait for that merge."
   echo "A Blocker adds re-review + apply (up to MAX_REREVIEW=$MAX_REREVIEW per task). A wip commit adds a continue (up to MAX_CONTINUE=$MAX_CONTINUE)."
   [ -n "$FETCH_WARN" ] && echo "warning: $FETCH_WARN"
   return 0
@@ -766,14 +810,20 @@ cmd_worktree() {
   say dir "$dir"
   if [ -d "$dir" ]; then say exists yes; else say exists no; fi
   say offset "$(offset_for "$name")"
-  dir=${INT_REF#refs/heads/}
-  say base "${dir#refs/remotes/}"
+  dir=${INT_REF#refs/heads/}; dir=${dir#refs/remotes/}
   if has_task "$name"; then
+    # A task built on an unmerged dependency (STACK=1) has that branch as its base until the
+    # dependency is merged, so "git diff <base>...HEAD" shows only its own work.
+    deps_block "$name"
+    if [ -n "$REPLY" ]; then stack_on "$name"; [ -n "$REPLY" ] && dir=task/$REPLY; fi
+    say base "$dir"
     task_ref "$name"
     say branch "task/$name"
     field "$TREF" "$name" Status; say status "$REPLY"
     say where "$TWHERE"
     deps_block "$name"; say blocked_by "$REPLY"
+  else
+    say base "$dir"
   fi
 }
 
@@ -795,8 +845,13 @@ cmd_start_check() {
     *) needs_human stop "Task $id is $st, not Todo" ;;
   esac
   [ "$TWHERE" = local ] && needs_human stop "task/$id already has commits beyond $INTEGRATION while the task is Todo: an earlier session may own it; ask the user before reusing it"
+  local base=${INT_REF#refs/heads/}; base=${base#refs/remotes/}
   deps_block "$id"; d=$REPLY
-  [ -n "$d" ] && needs_human stop "Task $id waits for Task $d to be merged into $INTEGRATION"
+  if [ -n "$d" ]; then
+    stack_on "$id"
+    [ -n "$REPLY" ] || needs_human stop "Task $id waits for Task $d to be merged into $INTEGRATION"
+    base=task/$REPLY
+  fi
   n=0
   for t in $TASK_IDS; do
     task_ref "$t"; field "$TREF" "$t" Status
@@ -808,7 +863,7 @@ cmd_start_check() {
   say result ok
   say dir "$dir"
   say offset "$(offset_for "$id")"
-  d=${INT_REF#refs/heads/}; say base "${d#refs/remotes/}"
+  say base "$base"
   if ref_ok "refs/heads/task/$id"; then say branch_exists yes; else say branch_exists no; fi
   [ -n "$FETCH_WARN" ] && say warning "$FETCH_WARN"
   return 0
@@ -829,7 +884,7 @@ cmd_run_begin() {
   while [ -e "artifacts/runs/$RUN_ID" ]; do n=$((n + 1)); printf -v RUN_ID '%s-%02d' "$base" "$n"; done
   echo "started $(date '+%Y-%m-%d %H:%M:%S'), target $TARGET, run $RUN_ID" > "$LOCK/info"
   rm -rf "$STEPS_DIR" "$HOLD_DIR"; mkdir -p "$STEPS_DIR"
-  { echo "TARGET=$TARGET"; echo "RUN_ID=$RUN_ID"; echo "STEPS=0"; if [ "${2:-}" = --no-demo ]; then echo "DEMO_GATE=0"; else echo "DEMO_GATE=1"; fi; } > "$RUN_ENV"
+  { echo "TARGET=$TARGET"; echo "RUN_ID=$RUN_ID"; echo "STEPS=0"; } > "$RUN_ENV"
   mkdir -p "artifacts/runs/$RUN_ID"
   say result ok
   say run "$RUN_ID"
@@ -869,7 +924,10 @@ hand_out() {
   [ -n "$file" ] && absfile=$ROOT/$file
   case $act in
     start|continue)
-      if [ "$WORKTREES" = 1 ]; then where="Worktree: $dir (PORT_OFFSET=$offset)."; else where="Work in the main worktree: $ROOT."; fi ;;
+      if [ "$WORKTREES" = 1 ]; then where="Worktree: $dir (PORT_OFFSET=$offset)."; else where="Work in the main worktree: $ROOT."; fi
+      if [ "$act" = start ] && [ -n "${A_BASE:-}" ]; then
+        where="$where Base: $A_BASE (Task ${A_BASE#task/} is still in review and not merged; start-check gives the same base)."
+      fi ;;
     review|rereview|apply|merge) where="Task worktree: $dir. Main worktree: $ROOT." ;;
     *) where="Work in the main worktree: $ROOT." ;;
   esac
@@ -986,17 +1044,8 @@ cmd_check() {
         "In Review")
           dirty_in "$DIR" && needs_human needs_user "Task $TASK is In Review but $DIR has uncommitted changes"
           step_ok; say status "In Review"
-          if has_demo "$TASK"; then
-            say demo 1
-            # check --next hands out the next steps itself, so it holds the task for its demo
-            # first (unless run-begin turned the demo gate off).
-            if [ "${CHECK_NEXT:-}" = 1 ]; then
-              run_get DEMO_GATE 1
-              if [ "$REPLY" = 1 ]; then mkdir -p "$HOLD_DIR"; echo demo > "$HOLD_DIR/$TASK"; say held "$TASK"; fi
-            fi
-          else
-            say demo 0
-          fi
+          # demo=1: the task can be demoed when the user asks; it never holds the task.
+          if has_demo "$TASK"; then say demo 1; else say demo 0; fi
           return 0 ;;
         Done) needs_human needs_user "the dev step set Task $TASK to Done; only the apply-review step may do that" ;;
         "In Progress")

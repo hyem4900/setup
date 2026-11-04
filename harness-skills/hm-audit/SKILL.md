@@ -30,6 +30,7 @@ Without the harness (no .harness/config): read references/no-harness.md and refe
    - Each decision in docs/QUESTION.md (older projects: REQUIRE §11 Questions, or the DISCOVERY.md Interview Log)
    - Each Accepted change request in docs/changes/: its requirement changes are in REQUIRE.md and its tasks are Done
    - Any statement that is not implemented and not in REQUIRE Out of scope is a violation.
+   - Coverage: the Coverage lines at the top of docs/QUESTION.md (roles and access, screens, business logic, data, access and deployment). A category is **not established** when its line is empty, names only questions without a decision, says N/A without a reason, or says N/A while the product has it (screens built under `Screens: N/A`, roles in the code under `Roles and access: N/A`). This finds areas nobody asked about; it cannot recover the rules themselves, so never write a rule or a fix for one: the fix is the questions to ask me (through hm-change). A QUESTION.md without Coverage lines (older projects): write one line saying coverage was not recorded, and check nothing else here.
 4. (GREENFIELD=0) Check REQUIRE §5 compatibility constraints: each has a characterization or E2E test that passes.
 5. (more than one component) Each SPEC §4c contract has a test on both sides that passes.
    Also check development decisions: every DQ line in a merged task file points to an AC in REQUIRE.md or a D-xx in DECISIONS.md (`→ R-xx/AC-n` or `→ D-xx`) that says the same, and its test passes. A DQ that was never moved is a Gap.
@@ -50,7 +51,7 @@ Without the harness (no .harness/config): read references/no-harness.md and refe
 # Traceability
 
 ## Summary
-Audited commit <sha>. Musts covered N/N, Shoulds N/N, Coulds N/N, ACs tested N/N, NFRs measured N/N, compatibility constraints tested N/N, component contracts tested N/N, change requests done N/N
+Audited commit <sha>. Musts covered N/N, Shoulds N/N, Coulds N/N, ACs tested N/N, NFRs measured N/N, compatibility constraints tested N/N, component contracts tested N/N, change requests done N/N, coverage categories established N/5 (or `not recorded`)
 
 ## Matrix
 | ID | Priority | Task | Implementation | Tests | Passing | Status (OK / Untested / Missing / Partial / In flight) |
@@ -60,6 +61,9 @@ Audited commit <sha>. Musts covered N/N, Shoulds N/N, Coulds N/N, ACs tested N/N
 
 ## Source violations
 | Source (file §, Q-xx, or CR-xx) | Problem | Proposed fix |
+
+## Coverage not established
+| Category | Problem (empty, undecided, N/A without reason, N/A contradicted) | Questions to ask me |
 
 ## Issues still open
 (from every task file's "Issues found")
@@ -74,5 +78,5 @@ Audited commit <sha>. Musts covered N/N, Shoulds N/N, Coulds N/N, ACs tested N/N
 10. Commit docs/TRACEABILITY.md: `docs: traceability audit` (MERGE=pr: on a branch `docs/audit-<date>`, pushed for a pull request). Without the harness: leave it uncommitted and tell me where it is.
 
 ## End
-Report the summary and the gap list in CHAT_LANG, sorted by severity, then the top deepening candidate and the retro items in one line each. Ask which gaps, candidates and retro items to act on, as one round of questions. Do not fix anything until I answer.
-Approved items go through hm-change, which creates the tasks: gaps as one change request of kind `bug` or `feature`, deepening candidates and checks as `chore` (prefactor or expand–contract when they are wide), project rules and pointers as `docs`. Then they run through the normal flow. Without the harness, hm-change writes only the change record and task files, and "개발해: docs/tasks/<id>.md" (hm-dev) builds each one. Re-run this audit afterwards.
+Report the summary and the gap list in CHAT_LANG, sorted by severity, then the categories whose coverage is not established (apart from the gaps: they are unasked questions, not missing code), then the top deepening candidate and the retro items in one line each. Ask which gaps, candidates and retro items to act on, as one round of questions. Do not fix anything until I answer.
+Approved items go through hm-change, which creates the tasks: gaps as one change request of kind `bug` or `feature`, a category not established as a change request that starts by asking me its questions, deepening candidates and checks as `chore` (prefactor or expand–contract when they are wide), project rules and pointers as `docs`. Then they run through the normal flow. Without the harness, hm-change writes only the change record and task files, and "개발해: docs/tasks/<id>.md" (hm-dev) builds each one. Re-run this audit afterwards.

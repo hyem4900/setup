@@ -126,12 +126,16 @@ run check 3 --next; has "apply ok -> merged, task 1 unblocked" "result=ok" "stat
 # task 1: feature with demo, review finds a Blocker
 git checkout -q -b task/1 main; echo b > b.py; set_status 1 "In Review"; commit "feat(task-1): work"
 HEAD1=$(git rev-parse HEAD); git checkout -q main
-run check 4 --next; has "feature: demo held" "result=ok" "demo=1" "held=1" "action=wait" "waiting for the user on held task(s): 1"
+run check 4 --next; has "feature: demo offered, never held" "result=ok" "demo=1" "action=review" "task=1" "step=5"
+lacks "feature: no held=" "held="
+# a demo the user asked for holds the task: the running review is checked, but nothing more
+# is handed out for it until release
+run hold 1 demo; has "hold" "held=1"
+review_file task-1-review-1 "$HEAD1" "CHANGES REQUESTED" blocker
+run check 5 --next; has "held: review checked, nothing handed out" "verdict=CHANGES REQUESTED" "blocker=yes" "action=wait" "held=1"
 run status; has "status shows hold" "held: demo"
 run release 1; has "release" "released=1"
-run next; has "after release: review" "action=review" "task=1" "step=5"
-review_file task-1-review-1 "$HEAD1" "CHANGES REQUESTED" blocker
-run check 5 --next; has "blocker detected -> apply" "verdict=CHANGES REQUESTED" "blocker=yes" "action=apply" "step=6"
+run next; has "after release: blocker -> apply" "action=apply" "step=6"
 # apply with a Blocker: fix commit, stays In Review
 git checkout -q task/1; echo b2 > b.py; commit "fix(task-1): address review RV-1"; apply_review task-1-review-1; git checkout -q main
 run check 6 --next; has "blocker fixed -> re-review" "status=in review, re-review next" "action=rereview" "Re-review Task 1." "step=7"
@@ -143,8 +147,8 @@ run check 8 --next; has "task 1 merged -> task 2 starts" "status=done, merged" "
 
 # task 2: batch, merged without review, then review all
 git checkout -q -b task/2 main; echo c > c.py; set_status 2 "In Review"; commit "feat(task-2): work"; git checkout -q main
-run check 9 --next; has "batch task: demo held" "demo=1" "held=2"
-run release 2; run next; has "batch -> merge" "action=merge" "Merge Task 2." "step=10"
+run check 9 --next; has "batch -> merge, no demo hold" "demo=1" "action=merge" "Merge Task 2." "step=10"
+lacks "batch: no held=" "held="
 git merge -q --no-ff --no-edit task/2
 run check 10 --next; has "batch merged -> review all" "status=merged, waits for review all" "backlog=1 task(s) merged without review" "action=review-all" "task=all" "Review all." "step=11"
 lacks "backlog below threshold: no suggestion" "suggest: Review all."
@@ -198,11 +202,11 @@ run run-end
 git checkout -q main; echo dirty > dirty.txt
 run run-begin 0 --no-demo; run next; rc_is "dirty tree still allows continue" 0; has "continue despite dirty" "action=continue"
 rm dirty.txt; run run-end
-# demo gate off: no hold after the dev step
+# an old --no-demo flag is accepted and changes nothing
 run run-begin 0 --no-demo; run next; has "continue (In Progress on branch)" "action=continue"
 git checkout -q task/0; set_status 0 "In Review"; commit "feat(task-0): done"; git checkout -q main
-run check 1 --next; has "gate off: not held, merge next" "demo=1" "action=merge"
-lacks "gate off: no held=" "held="
+run check 1 --next; has "old flag: not held, merge next" "demo=1" "action=merge"
+lacks "old flag: no held=" "held="
 run run-end
 
 # ====================================================================================
@@ -243,6 +247,39 @@ run check 2; rc_is "review of the wrong commit" 3; has "wrong commit reason" "bu
 review_file task-0-review-2 "$(git rev-parse task/0)" APPROVE
 run check 2; rc_is "right commit passes" 0; has "picks the newest file" "task-0-review-2.md"
 run run-end
+
+# ====================================================================================
+echo "== scenario E: STACK=1, the next task starts on its dependency's unmerged branch"
+new_repo MODE=HACKATHON INTEGRATION=main MERGE=local PARALLEL=2 WORKTREES=1 WORKTREE_DIR=../wt PORT_STEP=10 STACK=1
+task_file 0 "A" each none
+task_file 1 "B" each 0
+task_file 2 "C" each 1
+commit "chore: harness"; git tag harness-init
+run start-check 1; rc_is "start-check 1: dependency not developed yet" 3; has "not stacked on a Todo task" "waits for Task 0"
+git checkout -q -b task/0 main; echo a > a.py; set_status 0 "In Review"; commit "feat(task-0): work"
+HEAD0=$(git rev-parse HEAD); git checkout -q main
+run start-check 1; rc_is "start-check 1 stacked" 0; has "start-check base is the dependency's branch" "result=ok" "base=task/0"
+run plan all; has "plan explains stacking" "STACK=1"
+run run-begin all; run next --all
+has "review 0 and stacked start 1 together" "action=review" "task=0" "action=start" "task=1" "Base: task/0" "all 2 slot(s) busy"
+lacks "no stack on a stack: 2 waits" "task=2"
+# Task 1 developed on top of task/0
+git checkout -q -b task/1 task/0; echo b > b.py; set_status 1 "In Review"; commit "feat(task-1): work"; git checkout -q main
+run worktree 1; has "worktree base of a stacked task" "base=task/0" "blocked_by=0"
+run check 2 --next; has "stacked dev ok; its review waits for 0's merge" "result=ok" "status=In Review" "action=wait"
+run status; has "status: 1 waits for 0 before its review" "Task 1 waits for Task 0 to be merged into main before its review and merge" "waits for Task 1"
+review_file task-0-review-1 "$HEAD0" APPROVE
+run check 1 --next; has "review 0 ok -> apply 0" "verdict=APPROVE" "action=apply" "task=0"
+git checkout -q task/0; set_status 0 Done; apply_review task-0-review-1; git checkout -q main
+git merge -q --no-ff --no-edit task/0
+run check 3 --next; has "0 merged -> review 1 and stacked start 2" "status=done, merged" "action=review" "task=1" "action=start" "task=2" "Base: task/1"
+run worktree 1; has "after the merge the base is main again" "base=main"
+run run-end
+
+# STACK=1 without worktrees is refused
+new_repo MODE=HACKATHON INTEGRATION=main MERGE=local PARALLEL=1 WORKTREES=0 STACK=1
+task_file 0 "A" each none; commit "c"
+run status; rc_is "STACK=1 needs WORKTREES=1" 1; has "stack config error" "STACK=1 needs WORKTREES=1"
 
 # ====================================================================================
 echo
