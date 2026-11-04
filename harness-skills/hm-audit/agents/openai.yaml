@@ -1,4 +1,4 @@
 interface:
   display_name: "hm-audit"
-  short_description: "Traceability audit: requirements to tests"
+  short_description: "5.1-Traceability audit: requirements to tests"
   default_prompt: "Use $hm-audit: 누락 검토해"

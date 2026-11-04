@@ -1,4 +1,4 @@
 interface:
   display_name: "hm-auto"
-  short_description: "Run dev, review and merge automatically"
+  short_description: "3~4-Run dev, review and merge automatically"
   default_prompt: "Use $hm-auto: 자동으로 진행해"

@@ -1,4 +1,4 @@
 interface:
   display_name: "hm-change"
-  short_description: "Turn a requirement change into tasks"
+  short_description: "2+-Turn a requirement change into tasks"
   default_prompt: "Use $hm-change: 요구사항 추가해: "

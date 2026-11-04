@@ -1,10 +1,10 @@
 ---
 name: hm-load-test
-description: 'Step 6-1 of the harness flow. Use for "부하 테스트 해", "성능 테스트 해", or a load test or benchmark against the SPEC §10 targets (without the harness: from a document, or asked). Measures, finds bottlenecks, fixes, re-measures and writes docs/LOAD_TEST.md. Load test when HAS_LOAD=1; single-caller benchmarks (§10b) otherwise. Recommends a tool if SPEC names none.'
+description: 'Step 5.2 of the harness flow. Use for "부하 테스트 해", "성능 테스트 해", or a load test or benchmark against the SPEC §10 targets (without the harness: from a document, or asked). Measures, finds bottlenecks, fixes, re-measures and writes docs/LOAD_TEST.md. Load test when HAS_LOAD=1; single-caller benchmarks (§10b) otherwise. Recommends a tool if SPEC names none.'
 argument-hint: '"부하 테스트 해" | "성능 테스트 해"'
 ---
 
-# Harness Step 6-1: Performance test
+# Harness Step 5.2: Performance test
 
 Talk to me in CHAT_LANG and write documents in DOC_LANG (both in .harness/config; Korean and English if unset). Code, identifiers and the fixed tokens scripts parse stay in English. Ask questions in the question format of AGENTS.md ("Ask the user when"): the bold topic line, the open question, 🔍 with what you found, then ➡️ with your recommendation and its reason.
 
@@ -94,4 +94,4 @@ Commit: `docs: performance test results`
 Do not merge the branch yourself: merging is the development session's step. If the branch has `perf:` fixes and I want a review first, tell me to run "Review range <INTEGRATION>...perf/<n>." in a separate session; then "Merge branch perf/<n>." (hm-dev) integrates it.
 
 ## End
-Report in CHAT_LANG: pass/fail per endpoint or benchmark at target level, main bottleneck and fix, the branch and the next step ("Merge branch perf/<n>.", or a review first), anything that needs my decision. Then stop.
+Report in CHAT_LANG: pass/fail per endpoint or benchmark at target level, main bottleneck and fix, the branch and the next step (hm-dev, "Merge branch perf/<n>.", or hm-review, "Review range <A>..<B>.", first, then the other step-5 skills not run since the last merge: "누락 검토해", "보안 점검해"), anything that needs my decision. Then stop.

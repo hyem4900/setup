@@ -1,10 +1,10 @@
 ---
 name: hm-review
-description: 'Step 5-1 of the harness flow. Use in a separate session for "Review Task <id>.", "Re-review Task <id>.", "Review all.", "Re-review all.", "Review range A..B." or "이 브랜치 리뷰해" / "Review this branch." (with or without the harness). Read-only review on two axes (Spec: built what was asked; Standards: built the project''s way) at the exact commit under review; also for a teammate''s pushed branch.'
+description: 'Step 4.1 of the harness flow. Use in a separate session for "Review Task <id>.", "Re-review Task <id>.", "Review all.", "Re-review all.", "Review range A..B." or "이 브랜치 리뷰해" / "Review this branch." (with or without the harness). Read-only review on two axes (Spec: built what was asked; Standards: built the project''s way) at the exact commit under review; also for a teammate''s pushed branch.'
 argument-hint: '"Review Task <id>." | "Re-review Task <id>." | "Review all." | "이 브랜치 리뷰해"'
 ---
 
-# Harness Step 5-1: Review
+# Harness Step 4.1: Review
 
 You did not write this code. Review it as an outsider. Talk to me in CHAT_LANG; write the review in DOC_LANG, keeping its fixed lines and tokens in English. Ask questions in the question format of AGENTS.md ("Ask the user when"): the bold topic line, the open question, 🔍 with what you found, then ➡️ with your recommendation and its reason.
 
@@ -40,6 +40,6 @@ The review guide (docs/REVIEW.md) is the standard: its Rules, Where to run, Scop
 ## End
 Add two lines in CHAT_LANG after the review:
 - Verdict and counts per severity
-- Next step: in the development session, apply this review with the review file path (e.g. "리뷰 반영해: <path>" / "apply review: <path>"). With a task, run it even with zero findings: Done and the merge happen only in that step.
+- Next step: hm-dev in the development session applies this review, given the review file path (e.g. "리뷰 반영해: <path>" / "apply review: <path>"). With a task, run it even with zero findings: Done and the merge happen only in that step.
 
 Then stop.

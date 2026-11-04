@@ -1,4 +1,4 @@
 interface:
   display_name: "hm-security"
-  short_description: "Security tests and a security review"
+  short_description: "5.3-Security tests and a security review"
   default_prompt: "Use $hm-security: 보안 점검해"

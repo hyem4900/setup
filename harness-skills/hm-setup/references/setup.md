@@ -1,4 +1,4 @@
-# Harness Step 3: Set up (part of hm-setup)
+# Harness Step 2, Part B: Set up (part of hm-setup)
 
 Part B of hm-setup, read once the plan (Part A) is written. The rules at the top of SKILL.md still apply: CHAT_LANG and DOC_LANG, PROTECTED, no application code. "This skill's folder" below is the hm-setup folder, the parent of this file's folder.
 
@@ -24,7 +24,7 @@ It never overwrites an existing file and prints one line per file. Do not copy o
 One file per task: `docs/tasks/<id>.md`. Separate files keep parallel branches from conflicting, and new tasks are added without renumbering.
 IDs: numbers by default (0, 1, 2, ...). A team may use issue keys or `<initials>-<n>` instead; any ID matching `[A-Za-z0-9][A-Za-z0-9._-]*` works. Never reuse an ID.
 
-Write each task from `docs/tasks/_template.md`, which B1 installed (the leading underscore keeps it out of the task list); hm-change uses it too.
+Write each task from `docs/tasks/_template.md`, which B1 installed (the leading underscore keeps it out of the task list); hm-change uses it too. Copy it to `docs/tasks/<id>.md` with a file copy, then fill its fields in place; never type its fixed text again.
 
 Task files written before setup (without the harness, by hm-dev "개발해" or hm-change) are adopted, not replaced:
 - Keep their IDs, status, branches and Log. New tasks take the next free IDs after them.
@@ -155,8 +155,8 @@ Report in CHAT_LANG:
 - Task list with type, requirement IDs, review policy, dependencies, which one is the core task, and which tasks can run in parallel first
 - Traceability result
 - Next step, both ways:
-  - Manual: SESSION_PER_TASK=1 → "Start Task 0." in a new session; SESSION_PER_TASK=0 → also possible in this session. With PARALLEL > 1, open one session per task whose dependencies are merged and run them at the same time
-  - Automatic: in a chat that supports sub-agents (Codex, Claude Code), ask to run automatically (hm-auto). A question holds only its own task, and it waits for me when nothing else can run; demos run only when I ask, and change requests are collected and handled after the last task
+  - Manual: hm-dev. SESSION_PER_TASK=1 → "Start Task 0." in a new session; SESSION_PER_TASK=0 → also possible in this session. With PARALLEL > 1, open one session per task whose dependencies are merged and run them at the same time
+  - Automatic: hm-auto, "자동으로 진행해", in a chat that supports sub-agents (Codex, Claude Code). A question holds only its own task, and it waits for me when nothing else can run; demos run only when I ask, and change requests are collected and handled after the last task
   - A change to the plan (SPEC, DECISIONS) before Task 0 starts: tell me and I fix the plan, the task files and the commit. Later, and for new or changed requirements: hm-change (e.g. "add a requirement: ...")
 
 Then stop. Do not start Task 0.

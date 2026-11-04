@@ -1,4 +1,4 @@
 interface:
   display_name: "hm-review"
-  short_description: "Review a task or branch on two axes"
+  short_description: "4-Review a task or branch on two axes"
   default_prompt: "Use $hm-review: Review Task 1."

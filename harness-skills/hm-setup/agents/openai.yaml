@@ -1,4 +1,4 @@
 interface:
   display_name: "hm-setup"
-  short_description: "Plan the SPEC and set up the harness"
+  short_description: "2-Plan the SPEC and set up the harness"
   default_prompt: "Use $hm-setup: 설계 시작해"

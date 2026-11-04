@@ -1,10 +1,10 @@
 ---
 name: hm-dev
-description: 'Steps 4 and 5-2 of the harness flow: the development session. Use for "Start Task <id>." / "Continue Task <id>." (one task on its own branch, test-first, ending in a report that offers a demo), "Demo Task <id>." / "데모 보여줘" (start the product and walk me through the task''s demo scenario), "최종 확인해" / "Final check." (test, e2e, check, security, every load target and the evidence for each promised target on the integration branch, report only), or "개발해: ..." without the harness; applying a review of any shape ("리뷰 반영해: ...", "Apply these review comments: <file>"); "Merge Task <id>." / "Merge branch <branch>." (the only step that integrates) and "Task <id> 되돌려" / "Revert Task <id>."; and debugging ("디버깅해: ...", "원인 찾아줘: ...", "왜 느린지 찾아줘").'
+description: 'Steps 3 and 4.2 of the harness flow: the development session. Use for "Start Task <id>." / "Continue Task <id>." (one task on its own branch, test-first, ending in a report that offers a demo), "Demo Task <id>." / "데모 보여줘" (start the product and walk me through the task''s demo scenario), "최종 확인해" / "Final check." (test, e2e, check, security, every load target and the evidence for each promised target on the integration branch, report only), or "개발해: ..." without the harness; applying a review of any shape ("리뷰 반영해: ...", "Apply these review comments: <file>"); "Merge Task <id>." / "Merge branch <branch>." (the only step that integrates) and "Task <id> 되돌려" / "Revert Task <id>."; and debugging ("디버깅해: ...", "원인 찾아줘: ...", "왜 느린지 찾아줘").'
 argument-hint: '"Start Task <id>." | "Continue Task <id>." | "Demo Task <id>." | "개발해: ..." | "리뷰 반영해: <파일>" | "Merge Task <id>." | "디버깅해: ..."'
 ---
 
-# Harness Steps 4 and 5-2: Develop, apply review, integrate
+# Harness Steps 3 and 4.2: Develop, apply review, integrate
 
 Follow AGENTS.md. Do only the part my message asks for:
 
@@ -25,7 +25,7 @@ Without the harness (no .harness/config): read references/no-harness.md and refe
 ## Preconditions (Start Task <id>.)
 1. `bash scripts/harness-state.sh start-check <id>`. `result=stop`: tell me the reason in CHAT_LANG and stop (it checks the task file and its status, a branch someone else may own, unmerged dependencies, PARALLEL and a dirty worktree). `result=ok` gives `dir`, `offset`, `base`, `branch_exists`; a worktree and PORT_OFFSET named in my message (or hm-auto's prompt) win over them. A request with no task file goes through hm-change first: tell me ("요구사항 추가해: ..." / "버그 등록해: ...") and stop.
 2. Read files in the order in AGENTS.md.
-3. SESSION_PER_TASK (.harness/config). 1: this session has not worked on another task or run harness steps 1–3; if it has, tell me to start a new session and stop. 0: an earlier task in this session is fine once its report was sent; re-read the files anyway and trust the docs and `git log`, not what you remember. Missing: ask me 1 or 0, write it to .harness/config, then continue.
+3. SESSION_PER_TASK (.harness/config). 1: this session has not worked on another task or run harness steps 1–2; if it has, tell me to start a new session and stop. 0: an earlier task in this session is fine once its report was sent; re-read the files anyway and trust the docs and `git log`, not what you remember. Missing: ask me 1 or 0, write it to .harness/config, then continue.
 4. Create the place to work:
    - WORKTREES=1: `git worktree add -b task/<id> <dir> <base>` (`branch_exists=yes`: `git worktree add <dir> task/<id>`), write `PORT_OFFSET=<offset>` to `<dir>/.harness/local`, run `bash scripts/hm.sh setup` in `<dir>`. From here on, run every command inside `<dir>`.
    - WORKTREES=0: `git switch -c task/<id> <base>` (`branch_exists=yes`: `git switch task/<id>`).
@@ -64,6 +64,7 @@ Only when I ask. It shows me the task working; it changes nothing in the reposit
 3. Send, in CHAT_LANG: the task's Demo scenario as steps I can follow (the URL or command with the ports, the accounts, what to expect at each step), the screenshots in artifacts/e2e/screenshots/task-<id>/ if any, and how to end it ("데모 끝" / "done").
 4. Leave the demo running. When I say it is done, or before the next step that uses this worktree, `bash scripts/hm.sh stop`.
 5. A change I ask for while watching is a change request: tell me to say "수정 요청: ..." (hm-change), or, under hm-auto, the orchestrator collects it.
+6. When I say it is done: stop it and repeat the next step from the task's report (its review or merge).
 
 # Final check (최종 확인해 / Final check.)
 The checklist before I submit or ship: it measures the integration branch as it is, fixes nothing, and changes nothing in the repository (no commits, no edits). hm-auto runs it at the end of a run of target `all`; I may ask for it any time.
@@ -74,6 +75,7 @@ The checklist before I submit or ship: it measures the integration branch as it 
    - Behavior: the suites (test, e2e, check, security) all pass, or which fail.
    - Targets: N pass, N fail, N not measured (list the not measured ones). "Ready to submit" only when nothing fails and nothing is not measured; otherwise name what matters most.
 5. Do not fix anything, even a one-line change: I decide what to fix before the deadline.
+6. End the report with the next step: each failure is fixed through its "수정 요청: ..." (hm-change); then the step-5 skills not run since the last merge (no or older docs/TRACEABILITY.md: "누락 검토해", hm-audit; no or older docs/LOAD_TEST.md while SPEC §10 has targets: "부하 테스트 해", hm-load-test; no or older docs/security/review-<k>.md: "보안 점검해", hm-security).
 
 # Task workflow, report and Definition of Done
 The three sections below were part of AGENTS.md until v4.1. An older project's AGENTS.md may still carry them; this file wins.
@@ -102,9 +104,9 @@ The three sections below were part of AGENTS.md until v4.1. An older project's A
 - Test results: unit N passed, e2e N passed, (load / bench: p95 ms)
 - Needs checking / open issues
 - Next:
-  - Review: each → "Review Task <id>." in a separate session (review always runs in a separate session)
-  - Review: batch → "Merge Task <id>." (merged without its own review; "Review all." covers it later)
-  - Tasks that can start now (their dependencies are merged). SESSION_PER_TASK=1: in a new session; 0: also in this session
+  - Review: each → hm-review, "Review Task <id>." in a separate session (review always runs in a separate session)
+  - Review: batch → hm-dev, "Merge Task <id>." (merged without its own review; hm-review "Review all." covers it later)
+  - Tasks that can start now (their dependencies are merged): hm-dev, "Start Task <id>.", or several at once with hm-auto ("자동으로 진행해"). SESSION_PER_TASK=1: in a new session; 0: also in this session
 - feature and bug: last, the demo offer, in the question format of AGENTS.md: `**Task <id> demo**`, ❓ whether I want to see the demo now ("데모를 보여드릴까요?"), 🔍 what it would show in one line (from the task's Demo scenario) and the E2E screenshots that already show it, if any; ➡️ yes only if "Needs checking" lists something to see on screen, otherwise skip it and look later with "Demo Task <id>.", with the reason. Yes starts Demo above; anything else needs nothing.
 
 ## Definition of Done

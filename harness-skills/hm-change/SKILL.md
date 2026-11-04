@@ -113,5 +113,5 @@ If I reject it: Status Rejected with my reason, commit, stop.
 - Without the harness: commit on the current branch if the tree is clean (say which branch); if it is not clean, stop and tell me.
 
 ## Finish
-Report in CHAT_LANG: the CR file, changed requirements, new / changed / dropped tasks with their dependencies, which tasks can start now, and the next step ("Start Task <id>.", or run automatically with hm-auto).
+Report in CHAT_LANG: the CR file, changed requirements, new / changed / dropped tasks with their dependencies, which tasks can start now, and the next step (hm-dev, "Start Task <id>.", or hm-auto, "자동으로 진행해").
 Then stop.

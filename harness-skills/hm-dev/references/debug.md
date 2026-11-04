@@ -45,6 +45,7 @@ Write 3–5 ranked hypotheses in Diagnosis before testing any. Each is falsifiab
 - No `HM-DEBUG` left (`bash scripts/hm.sh check` passes; without the harness, `git grep -n HM-DEBUG` is empty); throwaway files only under artifacts/debug/ or the OS temp directory.
 - Diagnosis complete; the root cause and the hypothesis that held go into the fix commit message body and the task Log.
 - Skipping a phase needs a one-line reason in Diagnosis.
+- Diagnose only (no task): end the report with the next step, "버그 등록해: <the root cause in one line>" (hm-change), which turns it into a bug task.
 
 ## Diagnosis section (task file)
 ~~~markdown

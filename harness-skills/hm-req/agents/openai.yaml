@@ -1,4 +1,4 @@
 interface:
   display_name: "hm-req"
-  short_description: "Requirements interview to REQUIRE.md"
+  short_description: "1-Requirements interview to REQUIRE.md"
   default_prompt: "Use $hm-req: 요구사항 정리 시작해"

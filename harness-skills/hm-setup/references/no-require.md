@@ -1,4 +1,4 @@
-# Harness Steps 2–3 without docs/REQUIRE.md (part of hm-setup)
+# Harness Step 2 without docs/REQUIRE.md (part of hm-setup)
 
 Read this when docs/REQUIRE.md is missing. It turns the requirements I already have into the two files Part A needs, .harness/config and docs/REQUIRE.md, and then Part A and Part B run as usual. It is not the hm-req interview: open points are asked once, and the rest become [ASSUMPTION]s. The rules at the top of SKILL.md apply. "The hm-req skill folder" is `../hm-req/` from the hm-setup folder; read its templates there, never copy them into the repository.
 

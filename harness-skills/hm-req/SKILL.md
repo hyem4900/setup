@@ -7,6 +7,9 @@ argument-hint: '[요구사항 파일] | "요구사항 정리 시작해" | "끝�
 # Harness Step 1: Requirements
 
 Talk to me in the language I write in (it becomes CHAT_LANG; Korean if unclear). Write documents in DOC_LANG once it is set (default English). Code, identifiers and the fixed tokens scripts parse stay in English.
+Long files: write them with the host's file-editing tool, or in parts of at most about 20 KB each; never pass a whole document as one shell command argument. Windows refuses a command line over about 32,000 characters, and the whole text then has to be generated again.
+Planning mode: if you are in a planning mode that forbids writing files (e.g. Codex Plan mode), do not plan or start the work. Ask exactly this, in CHAT_LANG (Korean: `지금 plan 모드입니다. 기본 모드로 바꾸고 진행하시길 권장 드립니다. 기본 모드로 바꿀까요?`), and stop. This skill writes its files as it goes and stops for my answers itself, so a plan would only make the work run twice. If I say yes and you cannot switch the mode yourself, tell me in one line how to switch, and to send the same request again.
+Next step: end every report with the next step as plain text, never as a question or a list to pick from. Each line names the skill that does it (e.g. hm-dev, hm-review, hm-auto), says in a few words what it does, and gives the exact sentence to say, and whether it needs a new session; for example: `다음 단계: hm-dev로 Task 0을 개발합니다. 새 세션에서 "Start Task 0."이라고 말하세요.` Several possible next steps: one line each. A question this skill asks last (such as the demo offer) may follow them.
 Until .harness/config exists, treat every file that existed before this session as read-only.
 Other skills: use another skill only when my message names it or a step of this skill names it. An installed skill whose description seems to fit the work (a design system, charts, documents) stays unused, unless SPEC or DECISIONS records that I chose it.
 Files I name: a file named in my message is the first source for the role I give it, and harness files only fill what it lacks. If they disagree, show the difference and ask which one wins. If it is missing or does not fit that role, say so in one line and go on without it. Read it; edit it only if I ask.
@@ -48,7 +51,7 @@ Example of one option (in CHAT_LANG):
    - HACKATHON: a first plan of about three tasks, a lighter Task 0 (it keeps the tool versions installed here when they work, and leaves the first load scenario to the core task), and one load run at the target.
    - Both: the requirements interview asks every question whose answer changes a result (edge cases included); questions that only change how something looks get a proposed default instead. Only tasks that are hard to undo (a migration that rewrites stored data, sign-in and access control, a contract outside users rely on) are reviewed on their own before merging; the rest are merged right after development and reviewed together at the end. A demo is shown only when I ask for it.
 2. Task sessions (SESSION_PER_TASK). This is my choice, so always ask; never infer it. In the question, explain in plain words (at most about five lines):
-   - What it decides: whether each task in step 4 ("Start Task <id>.") is developed in a new chat session, or whether the next task may follow in the same chat after the previous task's report.
+   - What it decides: whether each task in step 3 ("Start Task <id>.") is developed in a new chat session, or whether the next task may follow in the same chat after the previous task's report.
    - Why it matters: a session carries everything said and read so far. A new session knows only the docs and git history, so assumptions from an earlier task cannot leak in. Staying in one session saves restarting and rereading, but the context keeps growing: older details get compressed or lost, and long sessions get slower and cost more.
    - The options:
      - New chat per task (1): I open a new chat for every task. Clean context per task. Recommend for FULL.
@@ -78,7 +81,7 @@ Write docs/REQUIRE.md now, before asking anything: copy `templates/REQUIRE.templ
 - Acceptance criteria now for Must only. Should and Could get `- Acceptance criteria: when tasked`; hm-setup or hm-change writes them when a task takes the R-xx.
 - Proposed defaults instead of questions: what the sources or the data answer with near certainty is not a question. That covers an evident data fix (a value entered in the wrong unit, a duplicate settled by its newest record, a missing mirror row of a symmetric pair) and a rule the sources state elsewhere. Apply it in the draft and add it to §7 Assumptions with its evidence, Status `proposed`; I confirm them all at once (Step 3).
 - Questions are only for what is genuinely unknown: a value or rule nobody wrote down, a choice between plausible readings, a conflict between sources. Wherever one leaves a value or a rule open, put the marker `[Q<k>]` (e.g. `[Q3]`) there (in the AC, rule, NFR or treatment) and add the question to docs/QUESTION.md as a block in the format of references/interview.md (read it before writing QUESTION.md). Never guess the value.
-- Coverage check, before writing QUESTION.md: walk the five coverage categories in references/interview.md (roles and access, screens, business logic for each Must, data, access and deployment). Each applicable one gets at least one question, and the first round asks one per category, so a gap is found at the start rather than at the end. Write the Coverage lines at the top of QUESTION.md.
+- Coverage check, before writing QUESTION.md: walk the five coverage categories in references/interview.md (roles and access, screens, business logic for each Must, data, access and deployment). Each applicable one gets at least one question, and the question list starts with one per category, so a gap is found at the start rather than at the end. Write the Coverage lines at the top of QUESTION.md.
 - A section that does not apply: its heading and `N/A (<reason>)` on one line.
 - Glossary: only terms that are ambiguous, used with two meanings, or have synonyms in the sources.
 - Coverage: every statement in REQ_SOURCES maps to an R-xx, a DR-xx, an NFR or an Out of scope row. Check it; do not write a mapping table.
@@ -119,5 +122,6 @@ Report in CHAT_LANG:
 - Assumptions I should confirm
 - Questions decided in docs/QUESTION.md (how many I left to you)
 - Later requirement changes: hm-change (e.g. "요구사항 추가해: ..." / "add a requirement: ..."), no need to rerun this step
+- Next step, as the last line: design and setup with the hm-setup skill, started with "설계 시작해" (English: "Start the design."); it asks the design decisions, then builds the harness.
 
 Then stop.

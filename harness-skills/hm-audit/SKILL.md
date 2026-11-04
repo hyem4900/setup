@@ -1,10 +1,10 @@
 ---
 name: hm-audit
-description: 'Step 6-2 of the harness flow. Use for "누락 검토해" (or "누락 검토해: <requirements doc>", also without the harness) or a traceability check. Maps every requirement and accepted change request to tasks and tests on the integration branch, finds gaps and source violations, lists deepening candidates in the most-changed code and runs a retro on recurring findings; reports before fixing. Any time, also mid-project.'
+description: 'Step 5.1 of the harness flow. Use for "누락 검토해" (or "누락 검토해: <requirements doc>", also without the harness) or a traceability check. Maps every requirement and accepted change request to tasks and tests on the integration branch, finds gaps and source violations, lists deepening candidates in the most-changed code and runs a retro on recurring findings; reports before fixing. Any time, also mid-project.'
 argument-hint: '"누락 검토해" | "누락 검토해: <요구사항 문서>"'
 ---
 
-# Harness Step 6-2: Traceability audit
+# Harness Step 5.1: Traceability audit
 
 Talk to me in CHAT_LANG and write documents in DOC_LANG (both in .harness/config; Korean and English if unset). Code, identifiers and the fixed tokens scripts parse stay in English. Ask questions in the question format of AGENTS.md ("Ask the user when"): the bold topic line, the open question, 🔍 with what you found, then ➡️ with your recommendation and its reason.
 
@@ -78,5 +78,5 @@ Audited commit <sha>. Musts covered N/N, Shoulds N/N, Coulds N/N, ACs tested N/N
 10. Commit docs/TRACEABILITY.md: `docs: traceability audit` (MERGE=pr: on a branch `docs/audit-<date>`, pushed for a pull request). Without the harness: leave it uncommitted and tell me where it is.
 
 ## End
-Report the summary and the gap list in CHAT_LANG, sorted by severity, then the categories whose coverage is not established (apart from the gaps: they are unasked questions, not missing code), then the top deepening candidate and the retro items in one line each. Ask which gaps, candidates and retro items to act on, as one round of questions. Do not fix anything until I answer.
+Report the summary and the gap list in CHAT_LANG, sorted by severity, then the categories whose coverage is not established (apart from the gaps: they are unasked questions, not missing code), then the top deepening candidate and the retro items in one line each. Ask which gaps, candidates and retro items to act on, as one round of questions. Do not fix anything until I answer. End with the next step: the approved items through hm-change (below); with nothing to act on, the final check ("최종 확인해", hm-dev) and the other step-5 skills not run since the last merge ("부하 테스트 해" while SPEC §10 has targets, "보안 점검해").
 Approved items go through hm-change, which creates the tasks: gaps as one change request of kind `bug` or `feature`, a category not established as a change request that starts by asking me its questions, deepening candidates and checks as `chore` (prefactor or expand–contract when they are wide), project rules and pointers as `docs`. Then they run through the normal flow. Without the harness, hm-change writes only the change record and task files, and "개발해: docs/tasks/<id>.md" (hm-dev) builds each one. Re-run this audit afterwards.

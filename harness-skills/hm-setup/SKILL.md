@@ -1,12 +1,15 @@
 ---
 name: hm-setup
-description: 'Steps 2–3 of the harness flow: plan and set up in one go. Use when the user says "설계 시작해" or "하네스 만들어", or asks for an architecture and SPEC from docs/REQUIRE.md or to create the harness. Asks the D-xx decisions, writes DECISIONS.md and SPEC.md, then builds the harness (AGENTS.md, task files, commands, guardrails) from this skill''s templates and commits it. Also starts without REQUIRE.md, and refreshes harness files later. Not for changes after setup (hm-change).'
+description: 'Step 2 of the harness flow: plan and set up in one go. Use when the user says "설계 시작해" or "하네스 만들어", or asks for an architecture and SPEC from docs/REQUIRE.md or to create the harness. Asks the D-xx decisions, writes DECISIONS.md and SPEC.md, then builds the harness (AGENTS.md, task files, commands, guardrails) from this skill''s templates and commits it. Also starts without REQUIRE.md, and refreshes harness files later. Not for changes after setup (hm-change).'
 argument-hint: '"설계 시작해" | "하네스 만들어" | "하네스 만들어: <요구사항 파일>"'
 ---
 
-# Harness Steps 2–3: Plan and set up
+# Harness Step 2: Plan and set up
 
 Talk to me in CHAT_LANG and write documents in DOC_LANG (both in .harness/config; Korean and English if unset). Code, identifiers and the fixed tokens scripts parse stay in English.
+Long files: write them with the host's file-editing tool, or in parts of at most about 20 KB each; never pass a whole document as one shell command argument. Windows refuses a command line over about 32,000 characters, and the whole text then has to be generated again.
+Planning mode: if you are in a planning mode that forbids writing files (e.g. Codex Plan mode), do not plan or start the work. Ask exactly this, in CHAT_LANG (Korean: `지금 plan 모드입니다. 기본 모드로 바꾸고 진행하시길 권장 드립니다. 기본 모드로 바꿀까요?`), and stop. This skill writes its files as it goes and stops for my answers itself, so a plan would only make the work run twice. If I say yes and you cannot switch the mode yourself, tell me in one line how to switch, and to send the same request again.
+Next step: end every report with the next step as plain text, never as a question or a list to pick from. Each line names the skill that does it (e.g. hm-dev, hm-review, hm-auto), says in a few words what it does, and gives the exact sentence to say, and whether it needs a new session; for example: `다음 단계: hm-dev로 Task 0을 개발합니다. 새 세션에서 "Start Task 0."이라고 말하세요.` Several possible next steps: one line each. A question this skill asks last (such as the demo offer) may follow them.
 Never modify paths listed in PROTECTED.
 Do not write application code in this skill. Only documents, .harness/config, agent entry files, scripts, git hooks, .gitignore and .gitattributes.
 Other skills: use another skill only when my message names it or a step of this skill names it. An installed skill whose description seems to fit the work (a design system, charts, documents) stays unused, unless SPEC or DECISIONS records that I chose it.
@@ -135,7 +138,7 @@ Do not write any file until I reply. This is the only stop between here and the 
 Record every accepted default too, with Status: Default.
 
 ## A4. docs/SPEC.md
-Copy `templates/SPEC.template.md` to docs/SPEC.md and fill every section, following the notes in it.
+Copy `templates/SPEC.template.md` to docs/SPEC.md with a file copy, then fill every section in place, following the notes in it: replace each note with its content, section by section. Never type the template's fixed text (headings, table headers, rules) again.
 - Keep every numbered section so references stay stable. If a section does not apply, write `N/A (<config key>=<value>)` on one line.
 - Name tables, entities, endpoints, fields, events, screens and modules after the REQUIRE §9 Glossary terms (English identifiers for them where DOC_LANG is not English, chosen once and used everywhere).
 - Write only what a decision needs: what tasks must agree on, and what Part B turns into commands (§2). No file paths below the top-level folders, no code. The one exception is a short schema, type or state shape that states a decision more precisely than prose.

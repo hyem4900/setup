@@ -1,10 +1,10 @@
 ---
 name: hm-security
-description: 'Step 6-3 of the harness flow. Use for "보안 점검해", "보안 테스트 해", "보안 리뷰해", "security review", or any request to test or harden security. In a separate session: maps the attack surface, runs the scans, writes security tests against the local components, and writes docs/security/review-<k>.md (findings with evidence and severity, improvements). Works without the harness. Does not fix product code or merge; findings become tasks through hm-change.'
+description: 'Step 5.3 of the harness flow. Use for "보안 점검해", "보안 테스트 해", "보안 리뷰해", "security review", or any request to test or harden security. In a separate session: maps the attack surface, runs the scans, writes security tests against the local components, and writes docs/security/review-<k>.md (findings with evidence and severity, improvements). Works without the harness. Does not fix product code or merge; findings become tasks through hm-change.'
 argument-hint: '"보안 점검해" | "보안 점검해: Task <id>"'
 ---
 
-# Harness Step 6-3: Security test and review
+# Harness Step 5.3: Security test and review
 
 Talk to me in CHAT_LANG and write documents in DOC_LANG (both in .harness/config; Korean and English if unset). Code, identifiers and the fixed tokens scripts parse stay in English. Ask questions in the question format of AGENTS.md ("Ask the user when"): the bold topic line, the open question, 🔍 with what you found, then ➡️ with your recommendation and its reason.
 
@@ -151,4 +151,5 @@ Report in CHAT_LANG:
   - "Merge branch security/<n>." (hm-dev) to integrate the tests and the review
   - "보안 리뷰 반영해: docs/security/review-<k>.md" (hm-change): findings become tasks (Critical and High first), and the rest become tasks or accepted risks I decide on. Without the harness: "리뷰 반영해: docs/security/review-<k>.md" (hm-dev) fixes them on a branch instead
   - After the fixes merge, "보안 점검해" again: the next review re-checks every open finding
+  - The other step-5 skills not run since the last merge: "누락 검토해" (hm-audit), "부하 테스트 해" (hm-load-test, while SPEC §10 has targets)
 Then stop.
