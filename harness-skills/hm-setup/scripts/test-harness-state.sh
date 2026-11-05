@@ -168,6 +168,12 @@ has "summary.tsv records every checked step" "step	action	task	started	seconds	r
 n=$(printf '%s\n' "$OUT" | grep -c "	ok$"); if [ "$n" -eq 12 ]; then ok "summary.tsv: 12 ok rows"; else bad "summary.tsv: $n ok rows, wanted 12" "$OUT"; fi
 run report; rc_is "report after run-end picks the latest run" 0
 has "report: kind and task tables" "kind     steps  minutes" "dev " "review " "apply " "merge " "total " "task   steps  minutes continues re-reviews questions" "slowest: step " "cost drivers:"
+mkdir -p artifacts/runs/zero && printf 'step	action	task	started	seconds	result
+1	start	0	x	0	ok
+2	review	0	x	0	ok
+' > artifacts/runs/zero/summary.tsv
+run report zero; has "report: every step took 0 s (a fast machine)" "slowest: step 1 start 0, 0.0 min"
+rm -rf artifacts/runs/zero
 
 # ====================================================================================
 echo "== scenario B: wip continue, dirty tree, MAX_CONTINUE"

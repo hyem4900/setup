@@ -1215,7 +1215,7 @@ cmd_report() {
         if (!(task in seen)) { seen[task] = 1; torder[++nt] = task }
         if (act == "continue") cont[task]++
         if (act ~ /^rereview/) rr[task]++
-        if (sec > maxs) { maxs = sec; maxl = "step " s " " act " " task }
+        if (maxl == "" || sec > maxs) { maxs = sec; maxl = "step " s " " act " " task }  # all 0 s on a fast machine: the first one
         tot += sec; n++
       }
       printf "%-8s %5s %8s\n", "kind", "steps", "minutes"
