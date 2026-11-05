@@ -74,7 +74,7 @@ For GREENFIELD=0: mark each entry Existing / Changed / New. Changed entries must
 
 ## 5. Screens (HAS_UI=1)
 Platform: browser / mobile / desktop. Mobile priority: phone first / desktop first / both (the narrowest width every screen must work at).
-One short block per screen: what a user must be able to see and do there, not its layout or look. A few lines each. The look is applied after development (docs/STANDARDS.md, UI baseline).
+One short block per screen: what a user must be able to see and do there, not its layout or look. A few lines each. The look comes from the design D-xx in DECISIONS if there is one, otherwise from docs/STANDARDS.md (UI baseline).
 #### {Screen}: {route or entry}
 - Requirements: R-xx
 - Who: the roles that may open it, and what anyone else gets (redirect to sign-in, 403 screen)

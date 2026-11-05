@@ -16,7 +16,7 @@
 | `harness-skills/hm-setup/scripts/harness-state.sh` | task 파일·브랜치·리뷰 파일로 "다음에 뭘 할지"를 판단하는 스크립트 (자동 실행, worktree 경로·포트 배정, `report`로 실행 비용 집계) |
 | `harness-skills/hm-setup/scripts/test-harness-state.sh`, `test-hm.sh` | `harness-state.sh` / `hm.sh`·`install.sh`를 임시 저장소에서 검증하는 테스트. 이 저장소 전용이며 프로젝트로 복사되지 않음. 고친 스크립트의 테스트를 돌림 (Windows에서 각각 몇 분 걸림, GitHub Actions가 push마다 ubuntu·macOS에서도 돌림) |
 | `harness-skills/hm-setup/scripts/hm.sh` | 프로젝트의 하네스 명령 (setup, test, e2e, security, check, selftest, dev-bg 등). 명령 내용은 `.harness/config`에서 읽음. 컴포넌트 기동·health check·종료 포함 |
-| `harness-skills/hm-front-design-lite/SKILL.md` | 하네스 단계가 아닌 디자인 스킬. 이미 있는 화면을 hm 디자인 규칙으로 다듬기만 함 (파일 하나, 시안·옵션·DESIGN.md·CSS 키트 없음). 전체판 hm-front-design은 이 저장소 밖(`~/.claude/skills/`)에 있음. 아래 복사 명령의 `hm-*`에 함께 들어감 |
+| `harness-skills/hm-front-design-lite/SKILL.md` | 하네스 단계가 아닌 디자인 스킬. 이미 있는 화면을 hm 디자인 규칙으로 다듬기만 함 (파일 하나, 시안·옵션·DESIGN.md·CSS 키트 없음). 화면이 있는 프로젝트에서 자체 디자인 시스템이 없으면 hm-setup이 이 스킬을 디자인 기본값(D-xx, Status: Default)으로 기록하고, hm-dev가 화면 task에서 따름. 전체판 hm-front-design은 이 저장소 밖(`~/.claude/skills/`)에 있음. 아래 복사 명령의 `hm-*`에 함께 들어감 |
 | `setup.md` | 하네스와 별개인 예전 개인 설정 메모 |
 
 ## 흐름 한눈에

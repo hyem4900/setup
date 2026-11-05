@@ -8,6 +8,8 @@ description: A light version of hm's design rules for polishing an existing web 
 
 Polish what exists; do not redesign. One file, no references: everything needed is below.
 
+Inside a harness task (DECISIONS names this skill), apply these rules while building the task's screens; the hm-dev workflow, tests and report replace the Workflow below.
+
 ## Scope
 - Change only the screen, component or style that was named, and only its look, spacing, states and copy. No new features, no new screens, no new libraries, no CSS kit copied in.
 - The project's own design system wins (tokens, a UI kit, a DESIGN.md, an existing component library). Use its tokens, classes and components; these rules fill only what it leaves open.

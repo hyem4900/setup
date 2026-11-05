@@ -88,6 +88,7 @@ The three sections below were part of AGENTS.md until v4.1. An older project's A
    - chore (refactor, dependency upgrade, tooling, infrastructure; no intended behavior change): confirm `test` and `e2e` pass before you change anything. Change. The same tests pass with their assertions unchanged. Add tests only for behavior the task explicitly changes.
    - spike (answer a question): investigate and write the task file's Findings: the answer, the evidence, a recommendation, and follow-up tasks to propose through hm-change. Prototype code only under the path the task names, or none. No production code, no new tests required.
    - docs: documentation only.
+   - (HAS_UI=1) A task that changes screens: if DECISIONS has a design D-xx naming a skill (e.g. hm-front-design-lite), read that skill once before the first screen change and build the task's screens by its rules; this workflow, its tests and its report still apply. Only the screens this task touches.
 3. The full suites pass: `bash scripts/hm.sh test` and `bash scripts/hm.sh e2e` with no arguments (screenshots in artifacts/e2e/screenshots/task-<id>/ if HAS_UI=1). docs and spike tasks: only if they changed code or tests.
 4. If the task's DoD includes a load test or benchmark, run `bash scripts/hm.sh load` / `bash scripts/hm.sh bench` and record the numbers in the task file Log
    - A new migration: `bash scripts/hm.sh migrate` after adding it and after merging INTEGRATION in.
