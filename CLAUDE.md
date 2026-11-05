@@ -14,7 +14,7 @@
 | `harness-skills/hm-setup/templates/` | hm-setup이 프로젝트로 복사하는 템플릿 (SPEC, AGENTS, STANDARDS, task 파일, config 명령 섹션, 가드레일 예시). 형식을 바꾸면 스킬 본문과 함께 고침 |
 | `harness-skills/hm-setup/scripts/install.sh` | 셋업 때 고정 파일(스크립트, 템플릿, hook, gitignore·gitattributes 줄, config 명령 섹션)을 한 번에 넣는 설치 스크립트. 있는 파일은 덮어쓰지 않음 |
 | `harness-skills/hm-setup/scripts/harness-state.sh` | task 파일·브랜치·리뷰 파일로 "다음에 뭘 할지"를 판단하는 스크립트 (자동 실행, worktree 경로·포트 배정, `report`로 실행 비용 집계) |
-| `harness-skills/hm-setup/scripts/test-harness-state.sh`, `test-hm.sh` | `harness-state.sh` / `hm.sh`·`install.sh`를 임시 저장소에서 검증하는 테스트. 이 저장소 전용이며 프로젝트로 복사되지 않음. 고친 스크립트의 테스트를 돌림 (Windows에서 각각 몇 분 걸림, GitHub Actions가 push마다 ubuntu·macOS에서도 돌림) |
+| `tests/test-harness-state.sh`, `tests/test-hm.sh` | `harness-state.sh` / `hm.sh`·`install.sh`를 임시 저장소에서 검증하는 테스트. 이 저장소 전용이며 프로젝트로 복사되지 않음. 스킬 폴더 밖에 두어 Codex·Claude Code 복사본에도 들어가지 않음 (스킬 폴더 안에 있을 때 hm-setup 에이전트가 찾아서 돌려 20분을 씀). 고친 스크립트의 테스트를 돌림 (Windows에서 각각 몇 분 걸림, GitHub Actions가 push마다 ubuntu·macOS에서도 돌림) |
 | `harness-skills/hm-setup/scripts/hm.sh` | 프로젝트의 하네스 명령 (setup, test, e2e, security, check, selftest, dev-bg 등). 명령 내용은 `.harness/config`에서 읽음. 컴포넌트 기동·health check·종료 포함 |
 | `harness-skills/hm-front-design-lite/SKILL.md` | 하네스 단계가 아닌 디자인 스킬. 이미 있는 화면을 hm 디자인 규칙으로 다듬기만 함 (파일 하나, 시안·옵션·DESIGN.md·CSS 키트 없음). 화면이 있는 프로젝트에서 자체 디자인 시스템이 없으면 hm-setup이 이 스킬을 디자인 기본값(D-xx, Status: Default)으로 기록하고, hm-dev가 화면 task에서 따름. 전체판 hm-front-design은 이 저장소 밖(`~/.claude/skills/`)에 있음. 아래 복사 명령의 `hm-*`에 함께 들어감 |
 | `setup.md` | 하네스와 별개인 예전 개인 설정 메모 |
@@ -49,7 +49,7 @@
 - `harness-state.sh`, `hm.sh`, hook 예시는 ASCII만 씁니다 (Windows에서 한글이 깨짐).
 - 하네스는 make 같은 별도 빌드 도구에 의존하지 않습니다. 필요한 건 git과 bash뿐입니다.
 - 스크립트는 macOS 기본 bash 3.2에서도 돌아야 합니다 (연관 배열 등 bash 4 기능 금지).
-- 스크립트가 읽는 형식(`harness-state.sh` 머리 주석의 "Conventions it relies on", `hm.sh` 머리 주석의 config·컴포넌트 형식)을 바꾸면 `harness-state.sh`와 `hm.sh`도 함께 고칩니다. `harness-state.sh`를 고쳤으면 `bash harness-skills/hm-setup/scripts/test-harness-state.sh`, `hm.sh`나 `install.sh`를 고쳤으면 `bash harness-skills/hm-setup/scripts/test-hm.sh`가 `failed 0`으로 끝나야 합니다. 테스트가 도는 동안에는 그 스크립트를 고치지 않습니다 (bash가 실행 중인 파일을 읽다가 깨짐).
+- 스크립트가 읽는 형식(`harness-state.sh` 머리 주석의 "Conventions it relies on", `hm.sh` 머리 주석의 config·컴포넌트 형식)을 바꾸면 `harness-state.sh`와 `hm.sh`도 함께 고칩니다. `harness-state.sh`를 고쳤으면 `bash tests/test-harness-state.sh`, `hm.sh`나 `install.sh`를 고쳤으면 `bash tests/test-hm.sh`가 `failed 0`으로 끝나야 합니다. 테스트가 도는 동안에는 그 스크립트를 고치지 않습니다 (bash가 실행 중인 파일을 읽다가 깨짐).
 
 ## 고친 뒤 반드시: Codex로 복사
 

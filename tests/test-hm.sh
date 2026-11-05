@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # test-hm.sh - proves hm.sh and install.sh on throwaway git repositories.
 #
-# Run it from anywhere: bash harness-skills/hm-setup/scripts/test-hm.sh
+# Run it from anywhere: bash tests/test-hm.sh
 # Each scenario builds a temporary repository with a .harness/config, runs hm.sh commands in it
 # (config parsing, skips, the pre-commit hook's format / lint / type check split, every guardrail,
 # selftest, starting and stopping components, load ports, doctor) and asserts the output and the
@@ -9,7 +9,7 @@
 # copies it into projects. Needs git and bash (3.2 or newer). ASCII only, as the scripts it tests.
 set -u -o pipefail
 
-HERE=$(cd "$(dirname "$0")" && pwd)
+HERE=$(cd "$(dirname "$0")/../harness-skills/hm-setup/scripts" && pwd)
 HM=$HERE/hm.sh
 INSTALL=$HERE/install.sh
 PASS=0; FAIL=0

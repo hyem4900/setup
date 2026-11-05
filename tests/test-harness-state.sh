@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # test-harness-state.sh - proves harness-state.sh on a throwaway git repository.
 #
-# Run it from anywhere: bash harness-skills/hm-setup/scripts/test-harness-state.sh
+# Run it from anywhere: bash tests/test-harness-state.sh
 # It builds a temporary repository with task files, walks the harness flow by hand (task
 # branches, status lines, review files, merges) and asserts what the script hands out and
 # checks at each step. It is for this skill repository, not for projects: nothing copies it.
 # Needs git and bash (3.2 or newer). ASCII only, as the scripts it tests.
 set -u -o pipefail
 
-HERE=$(cd "$(dirname "$0")" && pwd)
+HERE=$(cd "$(dirname "$0")/../harness-skills/hm-setup/scripts" && pwd)
 SCRIPT=$HERE/harness-state.sh
 PASS=0; FAIL=0
 TMP=$(mktemp -d 2>/dev/null || mktemp -d -t hmtest)

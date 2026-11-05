@@ -128,6 +128,8 @@ Patterns are extended regular expressions (`grep -E`), written as they are: quot
 
 Prove them with one command, not with throwaway files or scratch repositories: write `.harness/guardrail-samples` (B1 installed it with its format in the header): a `skip:` line for each skip style of the test tools, `selector-deny:` lines for each denied selector style and `selector-allow:` lines for each allowed one (HAS_UI=1), and a fake `secret:` line for each key format you added to SECRET_PATTERN. Then run `bash scripts/hm.sh selftest` once. It checks every sample against its pattern, plus built-in secret and debug samples, a bad task file and the PROTECTED paths, then runs `check` on the tree (LINT_CMD included). Fix the patterns until it prints `selftest: ok`.
 
+Setup is verified by `bash scripts/hm.sh selftest` and `bash scripts/hm.sh doctor` in the project, nothing more: do not run test suites, scripts or files from this skill's folder or any other skill's folder (they verify the skill itself, not the project), even when I ask to test the harness; say these two commands are that test.
+
 ## B4. Traceability check (report only)
 Before committing, check the points below and fix the task files for anything unmapped. Report the result in the Finish message; write no file (docs/TRACEABILITY.md belongs to hm-audit):
 - Every Must R-xx maps to a task file and to at least one named test
