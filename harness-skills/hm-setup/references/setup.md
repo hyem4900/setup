@@ -156,7 +156,7 @@ Report in CHAT_LANG:
 - Traceability result
 - Next step, both ways:
   - Manual: hm-dev. SESSION_PER_TASK=1 → "Start Task 0." in a new session; SESSION_PER_TASK=0 → also possible in this session. With PARALLEL > 1, open one session per task whose dependencies are merged and run them at the same time
-  - Automatic: hm-auto, "자동으로 진행해", in a chat that supports sub-agents (Codex, Claude Code). A question holds only its own task, and it waits for me when nothing else can run; demos run only when I ask, and change requests are collected and handled after the last task
+  - Automatic: hm-auto, "자동으로 진행해", in a new chat that supports sub-agents (Codex, Claude Code); not in this one, since the orchestrator resends its whole conversation each time it wakes for a finished sub-agent, and this setup conversation would ride along all run. A question holds only its own task, and it waits for me when nothing else can run; demos run only when I ask, and change requests are collected and handled after the last task
   - A change to the plan (SPEC, DECISIONS) before Task 0 starts: tell me and I fix the plan, the task files and the commit. Later, and for new or changed requirements: hm-change (e.g. "add a requirement: ...")
 
 Then stop. Do not start Task 0.

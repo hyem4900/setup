@@ -24,7 +24,7 @@ If a precondition fails, tell me in CHAT_LANG and stop.
 
 ## Rules
 The review guide (references/review-guide.md in this skill's folder) is the standard: its Rules, Where to run, Scope, Checklist, Demo walkthrough, Severity and Output apply as written. This file adds only how the session runs.
-- Where to run: the task worktree given in the prompt when it is clean and at the head of task/<id>; otherwise the temporary detached worktree the guide describes, removed with `git worktree remove` at the end. The current worktree is fine when it is clean and already at that sha.
+- Where to run: the task worktree given in the prompt when it is clean and at the head of task/<id>; otherwise the temporary detached worktree the guide describes, removed with `git worktree remove` at the end. The current worktree is fine when it is clean and already at that sha. WORKTREES=0: the main worktree as the guide's WORKTREES=0 line describes (never during development, back on the noted branch at the end).
 - A docs/REVIEW.md in the project (older harness versions) is not read: the guide in this skill wins, and project-specific rules live in docs/STANDARDS.md "Project rules". Say once in the report that the old file can be deleted.
 - If a finding is a guess, mark it "Needs verification" and say what would confirm it. Do not inflate severity.
 

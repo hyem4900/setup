@@ -2,18 +2,19 @@
 
 Source: `harness-skills/_shared/review-guide.md`. Do not edit the copy under `references/`; edit the source, change the Version line, and run `harness-skills/sync-shared.sh`. hm-review and hm-dev (apply review) read their copy; projects no longer carry a docs/REVIEW.md (an older one is ignored).
 
-Version: 2026-11-05
+Version: 2026-11-05.2
 
 ## Rules
 - Read-only. Do not modify source, tests, or docs, except writing the review file (and the screenshots of the Demo walkthrough).
 - Run `bash scripts/hm.sh test`, `bash scripts/hm.sh e2e`, and `bash scripts/hm.sh check` yourself, at the commit you review, and report the results. Do not trust the task file.
 - You may run the product to use it as a user would (Demo walkthrough). Stop what you started before you finish.
 - Read .harness/config first; skip checklist items that do not apply and say so.
-- Never run `git commit`, `git tag`, `git merge`, `git checkout`/`git switch` in an existing worktree, `git stash`, or anything else that changes a tree someone works in.
+- Never run `git commit`, `git tag`, `git merge`, `git checkout`/`git switch` in an existing worktree, `git stash`, or anything else that changes a tree someone works in. The one exception is WORKTREES=0 below, and only while no one works in it.
 
 ## Where to run
 - Review Task <id>: the task's worktree if it exists, is clean, and is at the head of task/<id>. Otherwise a temporary detached worktree: `git worktree add --detach <WORKTREE_DIR>/review-<id> task/<id>` (a teammate's task: `<REMOTE>/task/<id>`), with `PORT_OFFSET` from `bash scripts/harness-state.sh worktree review-<id>` in its `.harness/local`, then `bash scripts/hm.sh setup`. Remove it with `git worktree remove` at the end. Never switch branches in a worktree someone works in.
 - Review all: the main worktree if it is clean and at the integration head (MERGE=pr: `<REMOTE>/<INTEGRATION>` after `git fetch`); otherwise a temporary detached worktree at that head.
+- WORKTREES=0 in .harness/config (one folder): never create a worktree, so nothing lands outside the repository. Review in the main worktree, and never while development goes on there: if `bash scripts/harness-state.sh status` shows a task In Progress, or `git status --porcelain` is not empty, stop and tell me to ask again after that task's report. Otherwise note the branch it is on (`git branch --show-current`), `git switch --detach <the commit you review>`, run `bash scripts/hm.sh setup`, review, stop what you started, and `git switch <the noted branch>` before you finish, even when the review fails midway. The detached HEAD tells a development session that a review is running.
 
 ## Scope
 INT below means INTEGRATION (MERGE=pr: `<REMOTE>/<INTEGRATION>`).

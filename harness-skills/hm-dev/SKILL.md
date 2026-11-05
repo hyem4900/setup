@@ -28,7 +28,7 @@ Without the harness (no .harness/config): read references/no-harness.md and refe
 3. SESSION_PER_TASK (.harness/config). 1: this session has not worked on another task or run harness steps 1–2; if it has, tell me to start a new session and stop. 0: an earlier task in this session is fine once its report was sent; re-read the files anyway and trust the docs and `git log`, not what you remember. Missing: ask me 1 or 0, write it to .harness/config, then continue.
 4. Create the place to work:
    - WORKTREES=1: `git worktree add -b task/<id> <dir> <base>` (`branch_exists=yes`: `git worktree add <dir> task/<id>`), write `PORT_OFFSET=<offset>` to `<dir>/.harness/local`, run `bash scripts/hm.sh setup` in `<dir>`. From here on, run every command inside `<dir>`.
-   - WORKTREES=0: `git switch -c task/<id> <base>` (`branch_exists=yes`: `git switch task/<id>`).
+   - WORKTREES=0: if the main worktree is on a detached HEAD (`git branch --show-current` prints nothing), a review is probably running there: do not switch; tell me and stop. Otherwise `git switch -c task/<id> <base>` (`branch_exists=yes`: `git switch task/<id>`).
 5. `bash scripts/hm.sh check` passes.
 
 `base` may be `task/<d>` (STACK=1): Task <d> is finished but still in review, and this task builds on its branch. Then, before step 3 of the Task workflow (the full suites), merge in what Task <d> changed since you started: INTEGRATION if Task <d> is merged by then, otherwise the latest `task/<d>`; resolve conflicts in favor of Task <d>'s review fixes. This task's review and merge wait until Task <d> is merged (the script holds them).
@@ -37,7 +37,7 @@ If a step fails, tell me which one in CHAT_LANG and stop.
 
 ## Preconditions (Continue Task <id>.)
 Use when a session ended mid-task.
-1. task/<id> exists and its task file says In Progress. Work in its worktree (`bash scripts/harness-state.sh worktree <id>`), or with WORKTREES=0 (and without the harness) switch the main worktree to task/<id> if it is not there already; uncommitted changes of this same task may be present: keep them.
+1. task/<id> exists and its task file says In Progress. Work in its worktree (`bash scripts/harness-state.sh worktree <id>`), or with WORKTREES=0 (and without the harness) switch the main worktree to task/<id> if it is not there already (WORKTREES=0 on a detached HEAD: a review is probably running; tell me and stop); uncommitted changes of this same task may be present: keep them.
 2. Read the task file's Notes for Next Session and Log, `git diff <base>...HEAD`, and the uncommitted changes.
 3. Tell me in two lines what is done and what is left, then continue from the first unfinished workflow step.
 
