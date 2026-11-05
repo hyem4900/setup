@@ -1,0 +1,4 @@
+interface:
+  display_name: "hm-front-design-lite"
+  short_description: "Polish an existing screen with hm's minimal design rules"
+  default_prompt: "Use $hm-front-design-lite: 이 화면 디자인 다듬어"

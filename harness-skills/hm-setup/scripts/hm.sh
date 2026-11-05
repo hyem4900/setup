@@ -12,6 +12,8 @@
 #   status   task table across branches (harness-state.sh status)
 #   test [args]  unit tests (TEST_CMD). Arguments go where TEST_CMD has "$@" (test files or a
 #            name filter), so `test <file>` runs only those; no arguments runs the full suite
+#   test --reuse, e2e --reuse, check --reuse  print the recorded pass of this exact tree
+#            instead of running again, when there is one (see "Pass records" below)
 #   e2e [args]   E2E tests (E2E_CMD, arguments as for test); reuses healthy components, stops
 #            only the ones it started
 #   load     load test (LOAD_CMD) on PORT_OFFSET+100 with production-like commands
@@ -47,6 +49,13 @@
 #   UP_CMD / DOWN_CMD (optional) one launcher that starts / stops all components instead;
 #                it must return after starting them. Health checks still decide readiness.
 # Env: HEALTH_TIMEOUT (default 60 seconds per component). Pid files and logs: .run/<set>-<c>.*
+#
+# Pass records: a full `test`, `e2e` or `check` (no arguments) that passes in a worktree with
+# no uncommitted changes writes <git common dir>/hm-pass/<command>-<tree hash>: when it passed
+# and the last lines of its output. Every worktree of the repository sees them. Only `--reuse`
+# reads them; without it every command runs as always. With uncommitted changes nothing is
+# recorded or reused. The key is the committed tree, so a merge commit whose tree equals the
+# branch that already passed reuses that pass; ignored files (.env) are not part of the key.
 set -u -o pipefail
 
 cd "$(dirname "$0")/.." || exit 1
@@ -112,6 +121,45 @@ run() { # run <KEY> [args]: run the command stored in KEY, or fail if it is empt
   [ -n "$cmd" ] || die "$1 is empty in .harness/config"
   shift
   bash -c "$cmd" hm "$@"
+}
+
+# ---------- pass records ----------
+
+# clean_tree: REPLY = the tree hash of HEAD when the worktree has no uncommitted or untracked
+# changes; fails (REPLY empty) otherwise.
+clean_tree() {
+  REPLY=
+  [ -z "$(git status --porcelain 2>/dev/null)" ] || return 1
+  REPLY=$(git rev-parse 'HEAD^{tree}' 2>/dev/null) && [ -n "$REPLY" ]
+}
+
+recorded() { # recorded <name> <reuse 0|1> <function> [args]: run it, keeping a pass record
+  local name=$1 reuse=$2 tree= dir f out rc
+  shift 2
+  clean_tree && tree=$REPLY
+  if [ -z "$tree" ]; then
+    [ "$reuse" = 1 ] && echo "$name: nothing reused (uncommitted changes); running"
+    "$@"; return $?
+  fi
+  dir=$(git rev-parse --git-common-dir)/hm-pass
+  f=$dir/$name-$tree
+  if [ "$reuse" = 1 ]; then
+    if [ -f "$f" ]; then
+      echo "$name: ok (reused: the same tree passed before, nothing ran now)"
+      cat "$f"
+      return 0
+    fi
+    echo "$name: no recorded pass for this tree; running"
+  fi
+  mkdir -p "$RUN" "$dir"
+  out=$RUN/$name.out
+  ( "$@" ) 2>&1 | tee "$out"
+  rc=${PIPESTATUS[0]}
+  if [ "$rc" -eq 0 ]; then
+    { echo "recorded: $(date '+%Y-%m-%d %H:%M:%S'), tree $tree; the run's last lines:"
+      tail -n 20 "$out"; } > "$f"
+  fi
+  return "$rc"
 }
 
 # ---------- components ----------
@@ -847,14 +895,17 @@ case ${1:-help} in
   stop)   need_components; down dev ;;
   health) cmd_health ;;
   status) bash scripts/harness-state.sh status ;;
-  test)   shift; run TEST_CMD "$@" ;;
-  e2e)    shift; cmd_e2e "$@" ;;
+  test|e2e|check)
+    c=$1; shift; reuse=0
+    [ "${1:-}" = --reuse ] && { reuse=1; shift; }
+    case $c in test) f="run TEST_CMD" ;; e2e) f=cmd_e2e ;; check) f=cmd_check ;; esac
+    if [ $# -eq 0 ]; then recorded "$c" "$reuse" $f; else $f "$@"; fi
+    exit $? ;;
   load)   cmd_load ;;
   bench)  cmd_bench ;;
   security) cmd_security ;;
   migrate) [ -n "${MIGRATE_CMD:-}" ] || skip "MIGRATE_CMD empty"; run MIGRATE_CMD ;;
   fmt)    shift; cmd_fmt "$@" ;;
-  check)  shift; cmd_check "$@" ;;
   selftest) cmd_selftest ;;
   doctor) cmd_doctor ;;
   help|-h|--help) cmd_help ;;

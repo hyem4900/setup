@@ -37,7 +37,8 @@
 #          since the last review all. A suggestion only; nothing runs by itself.
 # Exit:    0 ok, 1 usage or precondition error, 3 needs a human
 #
-# Conventions it relies on (FLOW.md "Rules the script depends on"):
+# Conventions it relies on (change these and the skills that write them together; the config
+# line format and the command and component keys are in the header of hm.sh):
 #   .harness/config     MODE, INTEGRATION, MERGE (local|pr), REMOTE, PARALLEL, WORKTREES,
 #                       WORKTREE_DIR, PORT_STEP, STACK (1: a task may start on the unmerged branch
 #                       of its one dependency once that one's development is done; one level
@@ -613,6 +614,16 @@ trigger_for() { # trigger_for <action> <task> <abs file>: REPLY
 
 is_merge_kind() { case $1 in apply|merge|apply-all|merge-all) return 0 ;; esac; return 1; }
 
+# dev_merges <id>: one step at a time (PARALLEL=1) and local merges, so nothing else can move
+# INTEGRATION while the task is developed: the dev session of a batch task merges it too, and
+# no merge sub-agent is needed. Not for a task started on an unmerged dependency (A_BASE, set by
+# task_action), whose merge waits for that one. A dev session that does not merge (a conflict, a
+# question) leaves the task In Review on its branch, and the next step is a plain merge.
+dev_merges() {
+  [ "$PARALLEL" = 1 ] && [ "$MERGE" = local ] && [ -z "${A_BASE:-}" ] || return 1
+  review_policy "$1"; [ "$REPLY" = batch ]
+}
+
 # ---------- target ----------
 
 parse_target() {
@@ -772,7 +783,11 @@ cmd_plan() {
         if [ "$rv" = each ]; then
           echo "  Task $id ($ty): $A_ACTION (hm-dev), review, apply review, merge"
         else
-          echo "  Task $id ($ty): $A_ACTION (hm-dev), merge without review (review all later)"
+          if dev_merges "$id"; then
+            echo "  Task $id ($ty): $A_ACTION and merge in one session (hm-dev), no own review (review all later)"
+          else
+            echo "  Task $id ($ty): $A_ACTION (hm-dev), merge without review (review all later)"
+          fi
         fi ;;
       review|rereview) echo "  Task $id: $A_ACTION, apply review, merge" ;;
       apply) echo "  Task $id: apply ${A_FILE##*/}, merge" ;;
@@ -898,7 +913,7 @@ cmd_run_begin() {
 
 # hand_out <action> <task> <file>: counters, dirty checks, step file, key=value output
 hand_out() {
-  local act=$1 task=$2 file=$3 dir offset key count log skill prompt where head0 absfile=
+  local act=$1 task=$2 file=$3 dir offset key count log skill prompt where head0 trigger absfile=
   if [ "$task" = all ]; then dir=$ROOT; offset=0; else task_dir "$task"; dir=$REPLY; offset=$(offset_for "$task"); fi
   case $act in
     start)
@@ -931,8 +946,11 @@ hand_out() {
     review|rereview|apply|merge) where="Task worktree: $dir. Main worktree: $ROOT." ;;
     *) where="Work in the main worktree: $ROOT." ;;
   esac
-  trigger_for "$act" "$task" "$absfile"
-  prompt="Use the $skill skill. $REPLY $where"
+  trigger_for "$act" "$task" "$absfile"; trigger=$REPLY
+  case $act in
+    start|continue) dev_merges "$task" && trigger="$trigger Then merge it in this same session: once Task $task is In Review, follow \"Merge Task $task.\" (Review: batch, and nothing else runs now), and end with one report for both." ;;
+  esac
+  prompt="Use the $skill skill. $trigger $where"
   case $act in
     start|continue)
       [ -f "$NOTES" ] && prompt="$prompt Codebase notes: $ROOT/$NOTES (read them before exploring the code; they describe the commit on their Commit line, so check git log since then)." ;;
@@ -947,7 +965,7 @@ hand_out() {
     printf 'DIR=%q\n' "$dir"
     printf 'OFFSET=%s\n' "$offset"
     printf 'STARTED=%s\n' "$(date +%s)"
-    printf 'STARTED_AT=%s\n' "$(date '+%Y-%m-%d %H:%M:%S')"
+    printf 'STARTED_AT=%q\n' "$(date '+%Y-%m-%d %H:%M:%S')"
     printf 'HEAD0=%q\n' "$head0"
     if [ "$task" = all ]; then
       printf 'EXP_REF=%q\n' "${EXP_REF:-$INT_REF}"
@@ -1038,6 +1056,17 @@ cmd_check() {
   case $ACTION in
     start|continue)
       task_ref "$TASK"
+      int_status "$TASK"
+      if [ "$REPLY" = "In Review" ]; then
+        # The dev session merged the batch task too (dev_merges): only a batch merge puts
+        # In Review on the integration branch, and the merged branch now counts as "int".
+        dirty_in "$DIR" && needs_human needs_user "uncommitted changes left in $DIR"
+        [ "$MERGE" = local ] && dirty_in "$ROOT" && needs_human needs_user "uncommitted changes left in the main worktree"
+        step_ok; say status "merged, waits for review all"
+        if has_demo "$TASK"; then say demo 1; else say demo 0; fi
+        review_backlog; [ -n "$REPLY" ] && say backlog "$REPLY"
+        return 0
+      fi
       [ "$TWHERE" = local ] || needs_human needs_user "Task $TASK has no task/$TASK branch with commits: a start precondition failed or the agent asked a question before starting"
       field "$TREF" "$TASK" Status; st=$REPLY
       case $st in

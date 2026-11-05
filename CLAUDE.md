@@ -7,7 +7,6 @@
 
 | 파일 | 내용 |
 |---|---|
-| `FLOW.md` | 전체 흐름 설명. 사람이 읽는 기준 문서. "왜 이 하네스인가"(대상·문제·목표·비목표)와 "비용과 시간"(추정치와 측정법)도 여기 |
 | `CHANGELOG.md` | 버전 사이에 바뀐 것 (v3 → v4 비교표) |
 | `harness-skills/hm-*/SKILL.md` | 단계별 스킬 10개. hm-dev는 개발·리뷰 반영·병합을 함께 맡음. frontmatter의 `argument-hint`는 Claude Code에서 `/hm-…`를 입력할 때 보이는 힌트(트리거 문장), 각 스킬의 `agents/openai.yaml`은 Codex의 짧은 설명과 기본 프롬프트. 트리거 문장을 바꾸면 description과 함께 고침 |
 | `harness-skills/hm-*/references/`, `hm-req/templates/` | 일부 경우에만 읽는 내용: hm-dev의 `tdd.md`(테스트 먼저 루프)·`debug.md`(디버그 절차)·`review-and-merge.md`(리뷰 반영·병합)·`develop-without-harness.md`(하네스 없이 개발할 때의 입력과 시작 절차), hm-review·hm-audit·hm-load-test·hm-security·hm-change·hm-explain의 `inputs.md`(하네스 없이 돌 때의 입력 대체 표), hm-setup의 `setup.md`(셋업, Part B)·`no-require.md`(REQUIRE 없이 시작), hm-auto의 `stop-reasons.md`(멈춤 사유 표), hm-req의 `interview.md`(QUESTION.md 블록 양식과 인터뷰 절차)와 REQUIRE·QUESTION 양식·config 양식 (hm-setup도 읽음) |
@@ -17,6 +16,7 @@
 | `harness-skills/hm-setup/scripts/harness-state.sh` | task 파일·브랜치·리뷰 파일로 "다음에 뭘 할지"를 판단하는 스크립트 (자동 실행, worktree 경로·포트 배정, `report`로 실행 비용 집계) |
 | `harness-skills/hm-setup/scripts/test-harness-state.sh`, `test-hm.sh` | `harness-state.sh` / `hm.sh`·`install.sh`를 임시 저장소에서 검증하는 테스트. 이 저장소 전용이며 프로젝트로 복사되지 않음. 고친 스크립트의 테스트를 돌림 (Windows에서 각각 몇 분 걸림, GitHub Actions가 push마다 ubuntu·macOS에서도 돌림) |
 | `harness-skills/hm-setup/scripts/hm.sh` | 프로젝트의 하네스 명령 (setup, test, e2e, security, check, selftest, dev-bg 등). 명령 내용은 `.harness/config`에서 읽음. 컴포넌트 기동·health check·종료 포함 |
+| `harness-skills/hm-front-design-lite/SKILL.md` | 하네스 단계가 아닌 디자인 스킬. 이미 있는 화면을 hm 디자인 규칙으로 다듬기만 함 (파일 하나, 시안·옵션·DESIGN.md·CSS 키트 없음). 전체판 hm-front-design은 이 저장소 밖(`~/.claude/skills/`)에 있음. 아래 복사 명령의 `hm-*`에 함께 들어감 |
 | `setup.md` | 하네스와 별개인 예전 개인 설정 메모 |
 
 ## 흐름 한눈에
@@ -41,15 +41,15 @@
 
 ## 고칠 때 지킬 것
 
-- 스킬 파일이 기준입니다. 동작이 바뀌면 `FLOW.md`도 같이 고칩니다.
+- 스킬 파일이 기준입니다. 동작을 설명하는 별도 문서는 두지 않습니다.
 - 스킬은 다른 스킬을 실행하거나 그 절차를 빌려 오지 않습니다. 사용자가 이름으로 요청했거나 SPEC·DECISIONS에 기록된 경우만 예외입니다(hm-auto는 실행 대상을 단계에 명시). 다음 단계를 안내하고, 스크립트·템플릿 파일을 읽는 것은 괜찮습니다.
 - hm-auto를 뺀 모든 스킬은 하네스 파일이 없을 때도 쓸 수 있습니다. 각 스킬의 "Inputs" 표를 따르고, hm-setup은 `references/no-require.md`로 REQUIRE 없이 시작합니다. config 형식은 `hm-req/templates/config.template`, REQUIRE 형식은 `hm-req/templates/REQUIRE.template.md`가 원본입니다. 하네스 없이 만든 task 파일·CR은 hm-setup이 나중에 이어받습니다 (갱신 판단은 `harness-init` 태그나 AGENTS.md 하네스 섹션으로). 하네스 없이 돌 때 `.harness/config`, AGENTS.md, `scripts/`, hook을 만들지 않습니다.
-- 스킬 파일은 영어, `FLOW.md`와 대화는 한국어로 씁니다.
-- 특정 도구 이름(테스트 프레임워크, 브라우저 도구, 부하 도구, 보안 스캐너 등)을 박아 넣지 않습니다. 도구는 LLM이 프로젝트마다 추천하는 구조를 유지합니다 (`FLOW.md` "테스트 도구 선택").
+- 스킬 파일은 영어, 대화와 `CHANGELOG.md`는 한국어로 씁니다.
+- 특정 도구 이름(테스트 프레임워크, 브라우저 도구, 부하 도구, 보안 스캐너 등)을 박아 넣지 않습니다. 도구는 LLM이 프로젝트마다 추천하는 구조를 유지합니다.
 - `harness-state.sh`, `hm.sh`, hook 예시는 ASCII만 씁니다 (Windows에서 한글이 깨짐).
 - 하네스는 make 같은 별도 빌드 도구에 의존하지 않습니다. 필요한 건 git과 bash뿐입니다.
 - 스크립트는 macOS 기본 bash 3.2에서도 돌아야 합니다 (연관 배열 등 bash 4 기능 금지).
-- 스크립트가 읽는 형식(`FLOW.md` "스크립트가 의존하는 규칙")을 바꾸면 `harness-state.sh`와 `hm.sh`도 함께 고칩니다. `harness-state.sh`를 고쳤으면 `bash harness-skills/hm-setup/scripts/test-harness-state.sh`, `hm.sh`나 `install.sh`를 고쳤으면 `bash harness-skills/hm-setup/scripts/test-hm.sh`가 `failed 0`으로 끝나야 합니다. 테스트가 도는 동안에는 그 스크립트를 고치지 않습니다 (bash가 실행 중인 파일을 읽다가 깨짐).
+- 스크립트가 읽는 형식(`harness-state.sh` 머리 주석의 "Conventions it relies on", `hm.sh` 머리 주석의 config·컴포넌트 형식)을 바꾸면 `harness-state.sh`와 `hm.sh`도 함께 고칩니다. `harness-state.sh`를 고쳤으면 `bash harness-skills/hm-setup/scripts/test-harness-state.sh`, `hm.sh`나 `install.sh`를 고쳤으면 `bash harness-skills/hm-setup/scripts/test-hm.sh`가 `failed 0`으로 끝나야 합니다. 테스트가 도는 동안에는 그 스크립트를 고치지 않습니다 (bash가 실행 중인 파일을 읽다가 깨짐).
 
 ## 고친 뒤 반드시: Codex로 복사
 

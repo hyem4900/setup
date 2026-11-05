@@ -69,7 +69,7 @@ Only when I ask. It shows me the task working; it changes nothing in the reposit
 # Final check (최종 확인해 / Final check.)
 The checklist before I submit or ship: it measures the integration branch as it is, fixes nothing, and changes nothing in the repository (no commits, no edits). hm-auto runs it at the end of a run of target `all`; I may ask for it any time.
 1. Where: the main worktree, at the head of INTEGRATION and clean. If it is on another branch or has uncommitted changes, tell me and stop. If a component fails because the worktree was never set up, `bash scripts/hm.sh setup` first.
-2. Run, and record each result (do not stop at the first failure): `bash scripts/hm.sh test`, `bash scripts/hm.sh e2e`, `bash scripts/hm.sh check`; `bash scripts/hm.sh security` (it fails only at the SPEC §12 severity in the dependencies the product ships with); HAS_LOAD=1: `bash scripts/hm.sh load` once at each target in tests/load/targets.json (a target without a scenario is "not measured", never invented); SPEC §10b targets: `bash scripts/hm.sh bench`. Stop every process you started.
+2. Run, and record each result (do not stop at the first failure; never with `--reuse`, since this is the fresh run that every reused pass relies on): `bash scripts/hm.sh test`, `bash scripts/hm.sh e2e`, `bash scripts/hm.sh check`; `bash scripts/hm.sh security` (it fails only at the SPEC §12 severity in the dependencies the product ships with); HAS_LOAD=1: `bash scripts/hm.sh load` once at each target in tests/load/targets.json (a target without a scenario is "not measured", never invented); SPEC §10b targets: `bash scripts/hm.sh bench`. Stop every process you started.
 3. Collect the evidence for every target the product promised, beyond the suites: each NFR-xx in REQUIRE §6, each SPEC §10 target, and each SPEC §6 core computation (does its result meet the "Quality" line on the real data: a measured number, a comparison with another approach or a bound, or the named test that asserts it; `Quality: not set` is N/A with that reason, an older SPEC without the line is judged by its "Result" line). Evidence is a measurement from step 2, a test that asserts that exact target (name it), or a result file in the repository with its date and commit. Passing suites alone are not evidence for a target no test asserts: that row is "not measured", never pass. Measure nothing new beyond step 2; a target that would need a new script or scenario is "not measured", with what measuring it would take.
 4. Report in CHAT_LANG, in one table: item (test, e2e, check, security, each NFR-xx, each load and benchmark target, each §6 computation), target, result (counts, p95, error rate, findings, the measured value), evidence (the command, test name or file), and one of pass / fail / not measured / N/A. N/A carries its reason (e.g. "no load target: HAS_LOAD=0"). Then the failures, one line each, worded as a change request I can copy ("수정 요청: ..."), with what fixing it would take in one phrase. Last, two separate lines, never merged into one verdict:
    - Behavior: the suites (test, e2e, check, security) all pass, or which fail.
@@ -95,8 +95,9 @@ The three sections below were part of AGENTS.md until v4.1. An older project's A
 5. `bash scripts/hm.sh check` passes. If the task adds or upgrades a dependency, or lists a SEC-xx, `bash scripts/hm.sh security` passes too
 6. Commit: `<type>(task-<id>): <summary>` (feature: `feat`, bug: `fix`, chore: `chore` or `refactor`, spike and docs: `docs`)
 7. In the task file: `- Status: In Review`, Log entry, Notes for Next Session. Commit `docs(task-<id>): ready for review`.
-8. Send the report (format below). Do not prepare a demo.
-9. STOP and wait. Do not start another task until the user says so (in this session only if SESSION_PER_TASK=0).
+8. Merge too, only when my message (or hm-auto's prompt) asks for it and the task is `Review: batch`: follow Merge in references/review-and-merge.md in this session. Its full-suite rerun is skipped when INTEGRATION has not moved since step 3. If the merge cannot finish (a conflict you cannot resolve safely, a failing suite, a question), stop there: the task stays In Review on its branch, and the merge runs later as its own step; say why in the report.
+9. Send the report (format below; after a merge in step 8, one report for both, with the merge result after the test results). Do not prepare a demo.
+10. STOP and wait. Do not start another task until the user says so (in this session only if SESSION_PER_TASK=0).
 
 ## Report format (in CHAT_LANG)
 - Summary (3 lines at most)
@@ -105,7 +106,7 @@ The three sections below were part of AGENTS.md until v4.1. An older project's A
 - Needs checking / open issues
 - Next:
   - Review: each → hm-review, "Review Task <id>." in a separate session (review always runs in a separate session)
-  - Review: batch → hm-dev, "Merge Task <id>." (merged without its own review; hm-review "Review all." covers it later)
+  - Review: batch → hm-dev, "Merge Task <id>." (merged without its own review; hm-review "Review all." covers it later). Already merged in step 8: say so instead
   - Tasks that can start now (their dependencies are merged): hm-dev, "Start Task <id>.", or several at once with hm-auto ("자동으로 진행해"). SESSION_PER_TASK=1: in a new session; 0: also in this session
 - feature and bug: last, the demo offer, in the question format of AGENTS.md: `**Task <id> demo**`, ❓ whether I want to see the demo now ("데모를 보여드릴까요?"), 🔍 what it would show in one line (from the task's Demo scenario) and the E2E screenshots that already show it, if any; ➡️ yes only if "Needs checking" lists something to see on screen, otherwise skip it and look later with "Demo Task <id>.", with the reason. Yes starts Demo above; anything else needs nothing.
 

@@ -2,11 +2,11 @@
 
 Source: `harness-skills/_shared/review-guide.md`. Do not edit the copy under `references/`; edit the source, change the Version line, and run `harness-skills/sync-shared.sh`. hm-review and hm-dev (apply review) read their copy; projects no longer carry a docs/REVIEW.md (an older one is ignored).
 
-Version: 2026-11-05.2
+Version: 2026-11-05.3
 
 ## Rules
 - Read-only. Do not modify source, tests, or docs, except writing the review file (and the screenshots of the Demo walkthrough).
-- Run `bash scripts/hm.sh test`, `bash scripts/hm.sh e2e`, and `bash scripts/hm.sh check` yourself, at the commit you review, and report the results. Do not trust the task file.
+- Run `bash scripts/hm.sh test`, `bash scripts/hm.sh e2e`, and `bash scripts/hm.sh check` yourself, at the commit you review, and report the results. Do not trust the task file. Review all, Re-review all and Review range: run each with `--reuse` (`bash scripts/hm.sh test --reuse`, and so on); when the script recorded a pass for this exact committed tree (the last task's development or the apply already ran it), it prints that record instead of running again; report its counts with `(reused)`. Review Task and Re-review Task run them without `--reuse`.
 - You may run the product to use it as a user would (Demo walkthrough). Stop what you started before you finish.
 - Read .harness/config first; skip checklist items that do not apply and say so.
 - Never run `git commit`, `git tag`, `git merge`, `git checkout`/`git switch` in an existing worktree, `git stash`, or anything else that changes a tree someone works in. The one exception is WORKTREES=0 below, and only while no one works in it.
@@ -79,9 +79,9 @@ The reviewer never commits. The apply-review step (hm-dev) copies the file to do
 Verdict: APPROVE | CHANGES REQUESTED
 Commit: <full sha of the head you reviewed>
 Guide: review-guide <the Version line of this guide>
-test: N passed / N failed
-e2e: N passed / N failed
-check: pass / fail
+test: N passed / N failed (reused, if hm.sh printed a recorded pass)
+e2e: N passed / N failed (reused, likewise)
+check: pass / fail (reused, likewise)
 Axes: spec N findings (worst: <severity or none>), standards N findings (worst: <severity or none>)
 
 ## Findings

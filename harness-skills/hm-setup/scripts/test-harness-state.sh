@@ -145,9 +145,11 @@ run check 7 --next; has "re-review approved -> apply" "verdict=APPROVE" "blocker
 git checkout -q task/1; set_status 1 Done; apply_review task-1-review-2; git checkout -q main; git merge -q --no-ff --no-edit task/1
 run check 8 --next; has "task 1 merged -> task 2 starts" "status=done, merged" "action=start" "task=2" "step=9"
 
-# task 2: batch, merged without review, then review all
+# task 2: batch, merged without review, then review all. PARALLEL=1 and MERGE=local, so its dev
+# step asks for the merge too; this dev session does not merge, so a plain merge step follows.
+has "batch dev step also asks for the merge" "Start Task 2. Then merge it in this same session" "Merge Task 2."
 git checkout -q -b task/2 main; echo c > c.py; set_status 2 "In Review"; commit "feat(task-2): work"; git checkout -q main
-run check 9 --next; has "batch -> merge, no demo hold" "demo=1" "action=merge" "Merge Task 2." "step=10"
+run check 9 --next; has "batch dev did not merge -> merge step, no demo hold" "demo=1" "action=merge" "Merge Task 2." "step=10"
 lacks "batch: no held=" "held="
 git merge -q --no-ff --no-edit task/2
 run check 10 --next; has "batch merged -> review all" "status=merged, waits for review all" "backlog=1 task(s) merged without review" "action=review-all" "task=all" "Review all." "step=11"
@@ -208,6 +210,15 @@ git checkout -q task/0; set_status 0 "In Review"; commit "feat(task-0): done"; g
 run check 1 --next; has "old flag: not held, merge next" "demo=1" "action=merge"
 lacks "old flag: no held=" "held="
 run run-end
+# a batch task whose dev session merged it too: one step, then the next task
+git merge -q --no-ff --no-edit task/0
+run run-begin 1; run next; has "dev step asks for the merge" "action=start" "task=1" "Then merge it in this same session"
+run plan 1; has "plan: start and merge in one session" "Task 1 (feature): start and merge in one session (hm-dev)"
+git checkout -q -b task/1 main; echo w > w.py; set_status 1 "In Review"; commit "feat(task-1): done"; git checkout -q main
+git merge -q --no-ff --no-edit task/1
+run check 1 --next; has "dev step that merged: no merge step" "result=ok" "status=merged, waits for review all" "demo=1" "backlog=2 task(s) merged without review"
+lacks "no separate merge step" "action=merge"
+run run-end
 
 # ====================================================================================
 echo "== scenario C: PARALLEL=2, WORKTREES=1 slot and port allocation"
@@ -220,6 +231,7 @@ run worktree 0; has "worktree dir outside repo" "dir=" "/wt/0" "offset=10" "exis
 run start-check 0; has "start-check with worktrees" "result=ok" "/wt/0" "offset=10" "branch_exists=no"
 run run-begin all; run next --all
 has "two starts with different offsets" "task=0" "PORT_OFFSET=10" "task=1" "PORT_OFFSET=20" "action=wait" "all 2 slot(s) busy"
+lacks "PARALLEL=2: the dev step does not merge" "Then merge it"
 lacks "task 2 waits for its dependencies" "task=2"
 run run-end
 run status; has "status after run-end: blocked note" "waits for Task 0"

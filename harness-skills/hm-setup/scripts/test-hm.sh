@@ -102,6 +102,26 @@ echo 'WORKTREE_DIR=../outside-wt' >> .harness/config
 run doctor; rc_is "doctor: worktree folder outside" 0; has "outside ok" "ok    WORKTREE_DIR=../outside-wt"
 
 # ====================================================================================
+echo "== scenario 1b: pass records and --reuse"
+new_repo MODE=FULL HAS_SERVER=0 'TEST_CMD=echo x >> .run/count; echo "3 passed"; exit $(cat .run/rc 2>/dev/null || echo 0)'
+count() { wc -l < .run/count 2>/dev/null | tr -d ' '; }
+run test; rc_is "full test on a clean tree" 0; same "it ran" "$(count)" 1
+run test --reuse; rc_is "test --reuse" 0; has "reuse prints the record" "test: ok (reused" "3 passed"; same "reuse ran nothing" "$(count)" 1
+run test; same "without --reuse it always runs" "$(count)" 2
+run test a.py; same "a partial run runs" "$(count)" 3
+echo b > b.txt; run test --reuse; has "untracked file: nothing reused" "nothing reused (uncommitted changes)"; same "it ran" "$(count)" 4
+git add b.txt && git commit -q -m "feat: b"
+run test --reuse; has "new tree: no record" "no recorded pass for this tree"; same "it ran" "$(count)" 5
+run test --reuse; has "the run above recorded the new tree" "test: ok (reused"
+echo c > c.txt && git add c.txt && git commit -q -m "feat: c"
+echo 1 > .run/rc; run test; rc_is "failing run" 1
+rm .run/rc; run test --reuse; has "a failure is not recorded" "no recorded pass for this tree"
+git checkout -q -b task/9 && echo d > d.txt && git add d.txt && git commit -q -m "feat: d"
+run test; rc_is "task branch passes" 0
+git checkout -q main && git merge -q --no-ff -m "merge task/9" task/9
+run test --reuse; has "a merge commit with the branch's tree reuses its pass" "test: ok (reused"
+
+# ====================================================================================
 echo "== scenario 2: pre-commit hook: format, lint only staged files, type check only at gates"
 new_repo MODE=FULL HAS_SERVER=0 'TEST_CMD=true "$@"' 'LINT_CMD=echo LINT "$@"' 'TYPECHECK_CMD=echo TYPECHECK' \
   'FORMAT_CMD=for f in "$@"; do tr -s " " < "$f" > "$f.tmp" && mv "$f.tmp" "$f"; done'
