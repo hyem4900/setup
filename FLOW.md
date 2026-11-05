@@ -319,13 +319,13 @@ web_HEALTH=http_has http://localhost:$web_PORT/ "$SERVICE-web"
 |---|---|---|
 | 요구사항 질문 | High·Med 질문은 개수 제한 없이 모두 물음. Low는 묻지 않고 제안 기본값 (파고들기 모드는 Low도 물음) | FULL과 같음. 해커톤일수록 예외 상황을 찾아 메우는 게 중요해서 줄이지 않음 |
 | D-xx 결정 (기본) | 5 | 3 |
-| 처음 계획 | Task 0 + 약 5개 vertical slice | Task 0 + 약 3개 |
+| 처음 계획 | Task 0 + 약 5개 vertical slice (시작점일 뿐 상한 아님) | Task 0 + **최대 3개** (chore·spike 포함). task마다 세션이 따로 생기므로 개수보다 크기를 키움. 넘길 때는 Must가 안 들어가는 경우만, task마다 이유를 셋업 보고에 적음 |
 | Task 0 | 셋업 표의 모든 행 | 가볍게: 설치된 도구가 하네스 명령으로 돌면 그 버전을 그대로 쓰고 SPEC §1을 고침(휴대용 다운로드 없음), `needs check`는 이 PC에서 도는지만 확인(웹 검색 없음), 부하 도구는 버전 출력만 확인하고 첫 실제 시나리오와 targets.json은 Core task가 만듦. 취약점 검사는 두 모드 같음: 제품 의존성의 High 이상이면 멈추고, 나머지는 Task 0 파일 Issues found에 기록 |
-| 리뷰 정책 기본값 | 되돌리기 어려운 변경(one-way door)만 `each`: 저장된 데이터를 지우거나 좁히거나 다시 쓰는 마이그레이션, 로그인·인증 정보·접근 제어(SEC-xx), 저장소 밖에서 의존하는 계약(공개 API, 공개 파일·이벤트 형식). 나머지는 `batch` + 마지막 "Review all" | FULL과 같음 |
+| 리뷰 정책 기본값 | 되돌리기 어려운 변경(one-way door)만 `each`: 저장된 데이터를 지우거나 좁히거나 다시 쓰는 마이그레이션, 로그인·인증 정보·접근 제어(SEC-xx), 저장소 밖에서 의존하는 계약(공개 API, 공개 파일·이벤트 형식). 나머지는 `batch` + 마지막 "Review all" | SEC-xx가 있는 task와 저장된 데이터를 지우거나 다시 쓰는 마이그레이션만 `each`. 로그인·외부 계약도 `batch`. task는 개발 후 바로 병합하고, 마지막에 "Review all" 한 번과 반영 한 번 (그 뒤 최종 확인). task마다 리뷰·반영 세션 두 개(약 10분)가 빠지는 대신 문제를 늦게 발견함 |
 | 중간 "Review all" 제안 | batch로 병합된 task가 3개 또는 미리뷰 변경이 600줄을 넘으면 `status`와 병합 보고가 "지금 Review all을 권함"을 한 줄 덧붙임. 끝에 한 번에 보는 거대 리뷰를 피하기 위한 것이고, 할지는 내가 정함 | 제안 없음 |
 | 부하 테스트 | 10 / target / 2x | target 1회 |
 
-기본 개수에 도달했는데 중요한 질문이나 결정이 남으면, 계속할지 한 번 물어봄. task는 크기 기준(한 세션 분량, 대략 R-xx 3개 또는 AC 8개 이하)으로 나눔.
+기본 개수에 도달했는데 중요한 질문이나 결정이 남으면, 계속할지 한 번 물어봄. FULL의 task는 크기 기준(한 세션 분량, 대략 R-xx 3개 또는 AC 8개 이하)으로 나눔. HACKATHON은 task 수 상한(Task 0 + 3)이 먼저이고, 크기 기준은 넘을 이유가 될 때만 씀.
 
 ## 비용과 시간
 
@@ -384,7 +384,7 @@ AGENTS.md는 모든 세션이 읽어서 가장 비싼 파일임. 그래서 코�
 | 설정·선택 | 줄이는 것 | 대가 |
 |---|---|---|
 | MODE=HACKATHON | 질문·결정·처음 task 수 (세션 수) | [ASSUMPTION]이 늘어남 |
-| `Review: batch` (기본값: one-way door만 `each`) | task당 서브에이전트 3 → 2, 리뷰는 Review all 한 번 | 문제를 늦게 발견 |
+| `Review: batch` (기본값: one-way door만 `each`, HACKATHON은 SEC-xx·데이터 삭제 마이그레이션만) | task당 서브에이전트 3 → 2, 리뷰는 Review all 한 번 | 문제를 늦게 발견 |
 | PARALLEL 2~3 | 벽시계 시간 (토큰은 그대로) | worktree마다 `hm.sh setup`, 포트·DB 분리 필요 |
 | STACK=1 (리뷰 병행, PARALLEL 2 + WORKTREES=1) | 의존이 한 줄로 이어진 task에서 리뷰·반영을 기다리는 벽시계 시간 (리뷰는 task마다 그대로, 토큰도 그대로) | 앞 task의 리뷰 수정을 다음 task가 합쳐야 함(같은 줄이면 충돌), 개발과 리뷰가 동시에 돌아 PC 부담 두 배 |
 | Task 0 경량화 (HACKATHON) | 도구 버전 맞추기, 웹 조회, 임시 부하 시나리오 | 도구 문제를 늦게 알 수 있음 (최종 확인·hm-security가 다시 봄) |
